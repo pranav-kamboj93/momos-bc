@@ -185,6 +185,65 @@ html[data-theme="night"] .toast{background:#F4EFE2;color:#151412}
 .choice.ev{background:#FFF6DA;color:#151412;border:4px solid #FFC21A}
 .choice.nt{background:#0A0F1F;color:#F4EFE2;border:4px solid #3A4A7A}
 
+/* identity banner, section switch */
+.banner{background:#B3261E;color:#fff;font-weight:700;padding:10px 14px;font-size:15px}
+.secnav{display:flex;gap:8px;padding:10px 12px 0;background:var(--bg)}
+.secnav button{flex:1;min-height:52px;border-radius:14px;border:2px solid var(--line);background:var(--surface);font-weight:800;font-size:16px}
+.secnav button.on{background:var(--tab-on-bg);color:var(--tab-on-text);border-color:var(--tab-on-bg)}
+.view{padding:14px 12px 40px;max-width:760px;margin:0 auto}
+.owntabs{display:flex;gap:8px;overflow-x:auto;padding:10px 12px;border-bottom:1px solid var(--line);scrollbar-width:none;flex:none}
+.owntabs::-webkit-scrollbar{display:none}
+
+/* attendance */
+.att-card{background:var(--surface);border:2px solid var(--line);border-radius:22px;padding:18px;text-align:center}
+.att-card .who{font-size:15px;font-weight:700;color:var(--muted)}
+.att-card .state{font-size:26px;font-weight:900;margin:6px 0 2px}
+.att-card .sub{color:var(--muted);font-weight:600}
+.punch{width:100%;min-height:84px;border-radius:20px;font-size:24px;font-weight:900;color:#fff;margin-top:16px}
+.punch.in{background:#1E7B34}.punch.out{background:#C62828}.punch:disabled{opacity:.6}
+.linkbtn{background:none;color:var(--text);text-decoration:underline;font-weight:700;min-height:48px;padding:0 6px;margin-top:6px}
+.flag{display:inline-block;font-size:12px;font-weight:800;padding:2px 8px;border-radius:999px;background:#FDE2E1;color:#8A1C14;margin:2px 4px 0 0}
+.flag.ok{background:#DCF3E3;color:#14532D}
+.flag.info{background:var(--surface-2);color:var(--text)}
+
+/* owner tables and forms */
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th,.tbl td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;white-space:nowrap}
+.tbl th{color:var(--muted);font-size:12px;font-weight:800}
+.tbl td.num,.tbl th.num{text-align:right}
+.scroll-x{overflow-x:auto;background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:4px 10px}
+.wcard{width:100%;text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px;display:block}
+.wcard .top{display:flex;justify-content:space-between;gap:10px;font-weight:900;font-size:17px}
+.wcard .meta{color:var(--muted);font-weight:600;font-size:14px;margin-top:4px;white-space:normal}
+.chk{display:flex;align-items:center;gap:12px;min-height:52px;font-weight:800;font-size:17px}
+.chk input{width:26px;height:26px}
+.row2{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px}
+.row2 input{min-height:50px!important;font-size:17px!important}
+.chipset{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.codechip{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border-radius:999px;padding:6px 6px 6px 12px;font-weight:900;letter-spacing:2px}
+.codechip button{width:34px;height:34px;border-radius:50%;background:var(--surface);font-weight:900;letter-spacing:0}
+.big-num{font-size:30px;font-weight:900}
+
+/* stock */
+.st-sec{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:6px 14px;margin-bottom:12px}
+.st-sec h3{margin:8px 0 4px;font-size:18px;font-weight:900}
+.st-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.st-row:first-of-type{border-top:0}
+.st-row .nm{flex:1;font-weight:800;font-size:16px}
+.st-row .nm small{display:block;color:var(--muted);font-weight:600;font-size:12px}
+.st-step{display:flex;align-items:center;gap:6px}
+.st-step button{width:46px;height:46px;border-radius:12px;background:var(--surface-2);font-size:24px;font-weight:900}
+.st-step input{width:70px;min-height:46px;border-radius:12px;border:2px solid var(--line);background:var(--bg);text-align:center;font-size:19px;font-weight:900}
+.yn{display:flex;gap:8px}
+.yn button{width:64px;height:48px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font-size:20px;font-weight:900}
+.yn button.on.y{background:#1E7B34;color:#fff;border-color:#1E7B34}
+.yn button.on.n{background:#9E9E9E;color:#fff;border-color:#9E9E9E}
+.sec-edit{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:12px;margin-bottom:12px}
+.sec-edit .hdr{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.sec-edit .hdr input{flex:1}
+.mini{width:44px;height:44px;border-radius:10px;background:var(--surface-2);font-weight:900;font-size:17px;flex:none}
+.sec-edit select,.field select{min-height:50px;border-radius:12px;border:2px solid var(--line);background:var(--bg);font-size:16px;font-weight:700;padding:0 8px;color:var(--text)}
+
 /* staff picker */
 .staff-pick{position:fixed;inset:0;z-index:85;background:#151412;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;padding-top:calc(24px + env(safe-area-inset-top,0px));overflow-y:auto}
 .staff-pick h1{margin:0;font-size:30px;font-weight:900;color:#FFC21A;text-align:center}
@@ -260,10 +319,15 @@ html[data-theme="night"] .reward{background:#3A2E05;color:#FFE7A0;border-color:#
   <button class="brand" id="brand" aria-label="Change staff"><span id="brandName">Momos BC</span><small id="brandSub"></small></button>
   <button class="menu-badge" id="menuBadge" aria-label="Change menu"><span class="ico" id="menuIco">☀️</span><span><span id="menuName">Evening</span><span class="chg">Tap to change</span></span></button>
   <button class="icon-btn" id="sumBtn" aria-label="Sales summary">📊<span class="pend hidden" id="pend"></span></button>
+  <button class="icon-btn" id="ownBtn" aria-label="Owner">🔒</button>
 </header>
+<div class="banner hidden" id="banner"></div>
+<nav class="secnav hidden" id="secNav"></nav>
 <div class="nudge hidden" id="nudge"><span id="nudgeText"></span><button id="nudgeBtn">Switch</button></div>
 <nav class="tabs" id="tabs"></nav>
 <main id="grid"></main>
+<main id="attView" class="view hidden"></main>
+<main id="stockView" class="view hidden"></main>
 
 <div class="bar"><button id="barBtn" disabled></button></div>
 
@@ -298,6 +362,20 @@ html[data-theme="night"] .reward{background:#3A2E05;color:#FFE7A0;border-color:#
 <section class="layer hidden" id="sumLayer" aria-label="Sales summary">
   <div class="layer-head"><button class="back-btn" data-close>← Back</button><h2>Sales summary</h2></div>
   <div class="layer-body" id="sumBody"></div>
+</section>
+
+<!-- Owner area -->
+<section class="layer hidden" id="ownLayer" aria-label="Owner">
+  <div class="layer-head"><button class="back-btn" data-close>← Back</button><h2>🔒 Owner</h2></div>
+  <nav class="owntabs hidden" id="ownTabs"></nav>
+  <div class="layer-body" id="ownBody"></div>
+</section>
+
+<!-- Sub-forms (profile, correction, advance, payroll detail, stock week) -->
+<section class="layer hidden" id="formLayer" aria-label="Details">
+  <div class="layer-head"><button class="back-btn" data-close>← Back</button><h2 id="formTitle"></h2></div>
+  <div class="layer-body" id="formBody"></div>
+  <div class="layer-foot hidden" id="formFoot"></div>
 </section>
 
 <!-- Bill detail -->
@@ -342,8 +420,8 @@ html[data-theme="night"] .reward{background:#3A2E05;color:#FFE7A0;border-color:#
 
 <!-- Staff picker -->
 <div class="staff-pick hidden" id="staffPick">
-  <h1>Who is billing today?</h1>
-  <p>Tap your name</p>
+  <h1 id="staffTitle">Who is billing today?</h1>
+  <p id="staffSub">Tap your name</p>
   <div class="staff-list" id="staffList"></div>
   <button class="staff-cancel hidden" id="staffCancel">Cancel</button>
 </div>
@@ -459,8 +537,18 @@ try{localStorage.setItem("mbc.__t","1");localStorage.removeItem("mbc.__t");}catc
 if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().catch(()=>{});}
 
 const DEFAULT_MSG="Thank you for choosing health!\nEach Chicken Momo Plate contains *27gm Protein*\nEach Paneer Momo Plate contains *17gm Protein*\nLike us ? Review Us !\nhttps://g.page/r/CWOSBzrQwPL5EAE/review\n*Momos nahi.... Momos BC!*";
-const SHARED_DEFAULTS={shop:"Momos BC",upi:"Q220269128@ybl",payee:"Momos BC",ownerWa:"",pin:"8246",
-  rewardEvery:3,rewardMin:300,billMsg:DEFAULT_MSG,staff:[],prices:{}};
+const DEFAULT_STOCK=[
+  {name:"Fresh Box",type:"count",items:["Veg","Paneer","Chicken"]},
+  {name:"Momos Packet",type:"count",items:["Veg","Paneer","Chicken","K. Mushroom & Cheese","K. Chicken & Cheese","Corn & Cheese"]},
+  {name:"Dimsum",type:"count",items:["K. Mushroom & Cheese","K. Chicken & Cheese","Jalapeño Paneer","Veg","Corn Spinach & Cheese"]},
+  {name:"Cigar Rolls",type:"count",items:["Veg","Jalapeño Paneer","Chicken","Corn & Cheese"]},
+  {name:"Rest – Frozen",type:"count",items:["Pao Bhaji","Fries","Veg Patty","Chicken Patty","Paneer Patty","Chicken"]},
+  {name:"Packed Items",type:"count",items:["Oil","Milk","Burger","Pao","Bread","Tandoori Mayo","White Cheese","Jalapeño Cheese","Mayo Packet","Delicious Butter","Amul Butter – Pao Bhaji","Cream","Momo Chutney"]},
+  {name:"Fresh Item",type:"yesno",items:["Pyaz","Tamatar","Shimla Mirch","Bandh Gobhi","Lehsun","Nimbu","Paneer"]}];
+const LOCAL_PIN="8246";   // only used on a phone that isn't connected to the Google Sheet yet
+const SHARED_DEFAULTS={shop:"Momos BC",upi:"Q220269128@ybl",payee:"Momos BC",ownerWa:"",kitchenWa:"",
+  rewardEvery:3,rewardMin:300,billMsg:DEFAULT_MSG,staff:[],prices:{},
+  shopLat:null,shopLng:null,radius:100,shiftStart:"18:30",grace:15,shiftMinutes:720,stockList:DEFAULT_STOCK};
 const pickShared=o=>{const r={};Object.keys(SHARED_DEFAULTS).forEach(k=>{r[k]=(o&&o[k]!==undefined)?o[k]:SHARED_DEFAULTS[k];});return r;};
 
 let cfg,local;
@@ -471,7 +559,6 @@ let cfg,local;
   if(!l)l=old?{sheetUrl:old.sheetUrl||"",token:old.token||""}:{};
   cfg=pickShared(c);
   local={sheetUrl:l.sheetUrl||"",token:l.token||""};
-  if(cfg.pin==="1234")cfg.pin=SHARED_DEFAULTS.pin;
   if(!cfg.upi)cfg.upi=SHARED_DEFAULTS.upi;
   if(!Array.isArray(cfg.staff))cfg.staff=[];
   if(!cfg.prices||typeof cfg.prices!=="object")cfg.prices={};
@@ -486,6 +573,11 @@ if(!/^[A-Z2-9]{3}$/.test(device)){
   (window.crypto||{getRandomValues:x=>x.map(()=>Math.random()*256)}).getRandomValues(r);
   device=Array.from(r,x=>a[x%a.length]).join("");S.set("device",device);
 }
+
+// who this phone belongs to, as told by the Google Sheet: owner, worker (with access), or unregistered
+let me=S.get("me",{status:"",name:"",access:{}});
+let curSection=S.get("section","billing");
+let ownerPin="";
 
 let menu=S.get("menu",null);
 let cart=S.get("cart",[]);
@@ -557,6 +649,9 @@ window.addEventListener("popstate",()=>{
   $(id).classList.add("hidden");
   if(id==="optScrim"){renderGrid();if(isOpen("billLayer"))renderBill();}
   if(id==="billLayer"){renderGrid();renderBar();}
+  if(id==="ownLayer"){ownerPin="";slDraft=null;newLoc=null;}
+  if(!stack.length)checkStaff();
+  if(id==="formLayer")$("formFoot").classList.add("hidden");
 });
 document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",closeLayer));
 
@@ -564,12 +659,55 @@ document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",
    HEADER, MENU THEME, STAFF
    ========================================================= */
 function currentStaff(){return staffDay.bdate===businessDate(new Date())?staffDay.name:"";}
+const isOwnerPhone=()=>me.status==="owner";
+function sections(){
+  if(!local.sheetUrl)return ["billing"];
+  if(me.status==="owner")return ["billing","attendance","stock"];
+  if(me.status==="worker")return ["billing","attendance","stock"].filter(x=>me.access&&me.access[x]);
+  return cfg.staff.length?["billing","attendance"]:["billing"];   // not linked yet: keeps working, flagged for the owner
+}
+const canSummary=()=>!local.sheetUrl||me.status==="owner"||(me.status==="worker"&&me.access&&me.access.billing)||(me.status!=="worker"&&!cfg.staff.length);
 function renderHeader(){
   $("brandName").textContent=cfg.shop;
-  const who=currentStaff();
-  $("brandSub").textContent=cfg.staff.length?(who?"👤 "+who+" · change":"👤 Choose staff"):(menu==="night"?"12 AM – 6 AM":"6 PM – 12 AM");
-  const p=pendingCount(),e=$("pend");
+  const who=currentStaff(),sec=sections();
+  if(sec.indexOf(curSection)<0)curSection=sec[0]||"none";
+  const billing=curSection==="billing";
+  $("brandSub").textContent=billing&&cfg.staff.length?(who?"👤 "+who+" · change":"👤 Choose staff"):me.status==="worker"?"👤 "+me.name:(menu==="night"?"12 AM – 6 AM":"6 PM – 12 AM");
+  const p=pendingCount()+pendingPunches().length,e=$("pend");
   e.textContent=p;e.classList.toggle("hidden",!(local.sheetUrl&&p));
+  $("sumBtn").classList.toggle("hidden",!canSummary()||!billing);
+  $("menuBadge").classList.toggle("hidden",!billing);
+  // phone identity warning
+  let warn="";
+  if(!local.sheetUrl)warn=`⚠️ This phone is not set up. Tell the owner. Phone code: ${device}`;
+  else if(me.status==="unregistered"&&cfg.staff.length)warn=`⚠️ This phone (code ${device}) is not linked to a worker. Tell the owner.`;
+  else if(me.status==="worker"&&!sec.length)warn="⚠️ No sections are switched on for you. Ask the owner.";
+  $("banner").textContent=warn;$("banner").classList.toggle("hidden",!warn);
+  // section switch
+  const names={billing:"🧾 Billing",attendance:"🕒 Attendance",stock:"📦 Stock"};
+  $("secNav").innerHTML=sec.map(x=>`<button data-sec="${x}" class="${x===curSection?"on":""}">${names[x]}</button>`).join("");
+  $("secNav").classList.toggle("hidden",sec.length<2);
+  ["tabs","grid"].forEach(id=>$(id).classList.toggle("hidden",!billing));
+  document.querySelector(".bar").classList.toggle("hidden",!billing);
+  $("attView").classList.toggle("hidden",curSection!=="attendance");
+  $("stockView").classList.toggle("hidden",curSection!=="stock");
+  if(!billing)$("nudge").classList.add("hidden");
+}
+$("secNav").addEventListener("click",e=>{
+  const b=e.target.closest("[data-sec]");if(!b)return;
+  curSection=b.dataset.sec;S.set("section",curSection);renderHeader();checkNudge();window.scrollTo(0,0);
+  if(curSection==="attendance")openAttendance();
+  if(curSection==="stock")openStock();
+});
+async function refreshMe(){
+  if(!local.sheetUrl||!navigator.onLine)return;
+  try{
+    const d=await sheetGet({action:"whoami",device},10000);
+    if(!d.ok)return;
+    const prev=JSON.stringify(me);
+    me={status:d.status,name:d.name||"",access:d.access||{}};S.set("me",me);
+    if(JSON.stringify(me)!==prev){checkStaff();renderHeader();if(curSection==="attendance")openAttendance();if(curSection==="stock")openStock();}
+  }catch(e){}
 }
 function applyMenu(){
   document.documentElement.dataset.theme=menu||"evening";
@@ -592,6 +730,7 @@ async function requestSwitch(){
 $("menuBadge").addEventListener("click",requestSwitch);
 $("nudgeBtn").addEventListener("click",requestSwitch);
 function checkNudge(){
+  if(curSection!=="billing"){$("nudge").classList.add("hidden");return;}
   const h=new Date().getHours();let msg="";
   if(menu==="evening"&&h>=0&&h<6)msg="It is after 12 AM. Night menu prices apply now.";
   if(menu==="night"&&h>=18)msg="It is evening. Evening menu prices apply now.";
@@ -601,22 +740,28 @@ function checkNudge(){
 
 function showStaffPicker(canCancel){
   if(!cfg.staff.length)return;
+  $("staffTitle").textContent="Who is billing today?";$("staffSub").textContent="Tap your name";
   $("staffList").innerHTML=cfg.staff.map(n=>`<button class="staff-btn" data-n="${esc(n)}">${esc(n)}</button>`).join("");
   $("staffCancel").classList.toggle("hidden",!canCancel);
   $("staffPick").classList.remove("hidden");
 }
 function checkStaff(){
   if(!cfg.staff.length){$("staffPick").classList.add("hidden");renderHeader();return;}
-  if(menu&&!currentStaff()&&$("staffPick").classList.contains("hidden"))showStaffPicker(false);
+  // a worker's own phone bills in their name by default; they can still pick someone else
+  if(me.status==="worker"&&!currentStaff()){staffDay={bdate:businessDate(new Date()),name:me.name};S.set("staffDay",staffDay);}
+  // never pops up over an open screen (owner area, bill, summary); it asks once that screen is closed
+  // the owner's phone isn't forced to pick; it asks when a bill is saved
+  if(menu&&!currentStaff()&&!stack.length&&me.status!=="owner"&&curSection==="billing"&&sections().indexOf("billing")>=0&&$("staffPick").classList.contains("hidden"))showStaffPicker(false);
   renderHeader();
 }
 $("staffList").addEventListener("click",e=>{
   const b=e.target.closest("[data-n]");if(!b)return;
+  if(endPick(b.dataset.n))return;
   staffDay={bdate:businessDate(new Date()),name:b.dataset.n};S.set("staffDay",staffDay);
   $("staffPick").classList.add("hidden");renderHeader();buzz();toast("Billing as "+b.dataset.n);
 });
-$("staffCancel").addEventListener("click",()=>$("staffPick").classList.add("hidden"));
-$("brand").addEventListener("click",()=>{if(cfg.staff.length)showStaffPicker(true);});
+$("staffCancel").addEventListener("click",()=>{if(!endPick(null))$("staffPick").classList.add("hidden");});
+$("brand").addEventListener("click",()=>{if(cfg.staff.length&&curSection==="billing")showStaffPicker(true);});
 
 /* =========================================================
    MENU GRID
@@ -894,9 +1039,9 @@ function adoptConfig(c){
 }
 async function pushConfig(){
   if(!local.sheetUrl)return "local";
-  if(!navigator.onLine)return "error";
+  if(!navigator.onLine||!ownerPin)return "error";
   try{
-    const d=await sheetPost({action:"setConfig",config:Object.assign({v:cfgMeta.v},pickShared(cfg))});
+    const d=await sheetPost({action:"setConfig",pin:ownerPin,config:Object.assign({v:cfgMeta.v},pickShared(cfg))});
     if(!d.ok)return "error";
     if(d.config&&Number(d.config.v)>cfgMeta.v){adoptConfig(d.config);return "older";}
     cfgMeta.dirty=false;S.set("cfgMeta",cfgMeta);return "shared";
@@ -908,8 +1053,8 @@ async function pullConfig(){
   try{
     const d=await sheetGet({action:"config"},10000);if(!d.ok)return "error";
     const c=d.config;
-    if(!c){if(!cfgMeta.v)cfgMeta.v=Date.now();cfgMeta.dirty=true;S.set("cfgMeta",cfgMeta);return (await pushConfig())==="shared"?"seeded":"error";}
-    if(cfgMeta.dirty&&cfgMeta.v>=Number(c.v))return (await pushConfig())==="shared"?"pushed":"error";
+    if(!c){if(!ownerPin)return "same";if(!cfgMeta.v)cfgMeta.v=Date.now();cfgMeta.dirty=true;S.set("cfgMeta",cfgMeta);return (await pushConfig())==="shared"?"seeded":"error";}
+    if(cfgMeta.dirty&&cfgMeta.v>=Number(c.v)&&ownerPin)return (await pushConfig())==="shared"?"pushed":"error";
     if(Number(c.v)>cfgMeta.v){adoptConfig(c);return "loaded";}
     return "same";
   }catch(e){return "error";}
@@ -919,11 +1064,11 @@ async function saveCfg(){
   applyPrices();applyMenu();checkStaff();
   return pushConfig();
 }
-const cfgResultMsg=(r,what)=>r==="shared"?what+" saved for all devices":r==="local"?what+" saved on this device":r==="older"?"Someone saved newer settings on another device. Those are now loaded.":what+" saved here. They will reach other devices when this one is online.";
+const cfgResultMsg=(r,what)=>r==="shared"?what+" saved for all phones":r==="local"?what+" saved on this phone":r==="older"?"Someone saved newer settings on another phone. Those are now loaded.":what+" saved here. They will reach other phones when this one is online.";
 
-window.addEventListener("online",()=>{syncPending();pullConfig();});
-setInterval(syncPending,60000);
-setInterval(pullConfig,5*60000);
+window.addEventListener("online",()=>{syncPending();syncPunches();pullConfig();refreshMe();});
+setInterval(()=>{syncPending();syncPunches();},60000);
+setInterval(()=>{pullConfig();refreshMe();},5*60000);
 
 /* =========================================================
    SUMMARY  (built from the Google Sheet = all devices)
@@ -937,7 +1082,7 @@ async function loadSummary(){
   sumState="loading";renderSummary();
   await syncPending();
   try{
-    const d=await sheetGet({action:"day",date:sumDate},25000);
+    const d=await sheetGet({action:"day",date:sumDate,device},25000);
     if(seq!==sumSeq)return;
     if(!d.ok)throw new Error(d.error||"Sheet error");
     sumList=d.bills||[];sumState="ok";
@@ -991,7 +1136,7 @@ function renderSummary(){
       ${sumState==="ok"||sumState==="nosheet"?`<button class="act" id="csvBtn">Download this day as CSV</button>`:""}
       <button class="act" id="backupBtn">Back up this device's data</button>
       <button class="act" id="restoreBtn">Restore from a backup file</button>
-      <button class="act" id="settingsBtn">⚙ Owner settings</button>
+      <button class="act" id="settingsBtn">🔒 Owner</button>
     </div>`;
   $("dPrev").onclick=()=>{sumDate=shiftDate(sumDate,-1);loadSummary();};
   $("dNext").onclick=()=>{if(sumDate<today){sumDate=shiftDate(sumDate,1);loadSummary();}};
@@ -1001,7 +1146,7 @@ function renderSummary(){
   if($("csvBtn"))$("csvBtn").onclick=()=>downloadCSV(sumList);
   $("backupBtn").onclick=backup;
   $("restoreBtn").onclick=()=>$("restoreFile").click();
-  $("settingsBtn").onclick=openSettings;
+  $("settingsBtn").onclick=openOwner;
 }
 function summaryBody(s){
   if(!s.all.length)return `<div class="list" style="margin-top:6px"><div class="empty">No bills on this day yet</div></div>`;
@@ -1088,9 +1233,14 @@ function renderDetail(){
 async function doVoid(){
   const hint=$("voidHint"),btn=$("voidGo"),b=detBill;
   if(!voidReason){hint.textContent="Choose a reason";return;}
-  if($("voidPin").value!==cfg.pin){hint.textContent="Wrong PIN";$("voidPin").value="";return;}
-  const loc=bills.find(x=>x.id===b.id);
-  if(local.sheetUrl&&!loc&&!navigator.onLine){hint.textContent="Voiding a bill from another device needs internet";return;}
+  const pin=$("voidPin").value,loc=bills.find(x=>x.id===b.id);
+  if(!local.sheetUrl){if(pin!==LOCAL_PIN){hint.textContent="Wrong PIN";$("voidPin").value="";return;}}
+  else{
+    if(!navigator.onLine){hint.textContent="Voiding a bill needs internet";return;}
+    btn.disabled=true;btn.textContent="Checking PIN…";
+    try{const d=await sheetPost({action:"owner",op:"check",pin});if(!d.ok)throw new Error(d.error);}
+    catch(e){hint.textContent=e.message||"Wrong PIN";$("voidPin").value="";btn.disabled=false;btn.textContent="Void bill";return;}
+  }
   btn.disabled=true;btn.textContent="Voiding…";
   const stamp=localStamp(new Date());
   if(loc){
@@ -1098,7 +1248,7 @@ async function doVoid(){
     loc.status="Voided";loc.voidReason=voidReason;loc.voidedAt=stamp;loc.synced=false;S.set("bills",bills);
     await syncPending();
   }else{
-    try{const d=await sheetPost({action:"void",id:b.id,reason:voidReason,device,at:stamp});if(!d.ok)throw new Error(d.error||"Not voided");}
+    try{const d=await sheetPost({action:"void",id:b.id,reason:voidReason,device,at:stamp,pin});if(!d.ok)throw new Error(d.error||"Not voided");}
     catch(e){hint.textContent=e.message||"Could not reach the Sheet";btn.disabled=false;btn.textContent="Void bill";return;}
   }
   b.status="Voided";b.voidReason=voidReason;
@@ -1135,87 +1285,682 @@ $("restoreFile").addEventListener("change",async e=>{
 });
 
 /* =========================================================
-   OWNER SETTINGS (PIN protected)
+   NAME PICKER (shared by billing, attendance and owner screens)
    ========================================================= */
-function openSettings(){
-  $("setBody").innerHTML=`<div class="form">
-    <div class="field"><label for="pinIn">Enter owner PIN</label><input id="pinIn" type="password" inputmode="numeric" maxlength="8" autocomplete="off"><div class="hint warn" id="pinHint"></div></div>
-    <button class="big-btn" id="pinGo">Open settings</button></div>`;
-  openLayer("setLayer");
+let pickResolve=null;
+function pickName(title,names,sub){
+  return new Promise(res=>{
+    pickResolve=res;
+    $("staffTitle").textContent=title;$("staffSub").textContent=sub||"Tap a name";
+    $("staffList").innerHTML=names.map(n=>`<button class="staff-btn" data-n="${esc(n)}">${esc(n)}</button>`).join("");
+    $("staffCancel").classList.remove("hidden");$("staffPick").classList.remove("hidden");
+  });
+}
+function endPick(v){if(!pickResolve)return false;const r=pickResolve;pickResolve=null;$("staffPick").classList.add("hidden");r(v);return true;}
+
+/* =========================================================
+   ATTENDANCE  (worker's own phone, inside the shop area)
+   ========================================================= */
+let att={days:[],advances:[],unsettled:0,loaded:false,err:""},attMsg={cls:"",text:""},punching=false;
+function pendingPunches(){return S.get("punches",[]).filter(p=>!p.synced);}
+function shopSet(){return cfg.shopLat!=null&&cfg.shopLng!=null&&isFinite(cfg.shopLat)&&isFinite(cfg.shopLng);}
+function distM(a,b,c,d){const R=6371000,r=x=>x*Math.PI/180,dl=r(c-a),dn=r(d-b);
+  const h=Math.sin(dl/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
+function getPosition(){
+  return new Promise((res,rej)=>{
+    if(!navigator.geolocation)return rej(new Error("This phone can't share its location."));
+    navigator.geolocation.getCurrentPosition(p=>res(p.coords),e=>rej(new Error(
+      e.code===1?"Location is blocked for this app. Allow location in the phone's settings for Chrome (or Safari), then try again.":
+      e.code===3?"Getting the location took too long. Turn on GPS, stand near the door or a window, and try again.":
+      "Could not get the location. Turn on GPS and try again.")),{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+  });
+}
+function openAttendance(){renderAtt();loadMyData();}
+async function loadMyData(){
+  if(!local.sheetUrl||!navigator.onLine||me.status!=="worker"){att.loaded=true;renderAtt();return;}
+  try{
+    const d=await sheetGet({action:"me",device},15000);
+    if(d.ok){att.days=d.days||[];att.advances=d.advances||[];att.unsettled=d.unsettled||0;att.err="";}else att.err=d.error||"";
+  }catch(e){att.err=e.message;}
+  att.loaded=true;renderAtt();
+}
+// today's times: what the Sheet has, plus punches still waiting on this phone
+function todayFor(name){
+  const bd=businessDate(new Date()),srv=(me.status==="worker"&&name===me.name&&att.days.find(d=>d.date===bd))||{};
+  let inT=srv.inT||"",outT=srv.outT||"";
+  S.get("punches",[]).filter(p=>p.worker===name&&p.bdate===bd).forEach(p=>{
+    const t=p.time.slice(0,16);
+    if(p.type==="IN"&&(!inT||t<inT))inT=t;
+    if(p.type==="OUT"&&(!outT||t>outT))outT=t;
+  });
+  return {inT,outT};
+}
+function renderAtt(){
+  const v=$("attView");
+  if(!local.sheetUrl){v.innerHTML=`<div class="status bad">Attendance needs this phone to be connected to the Google Sheet. Tell the owner.</div>`;return;}
+  if(!shopSet()){v.innerHTML=`<div class="status bad">The owner hasn't set the shop location yet, so attendance can't be marked.</div>`;return;}
+  const mine=me.status==="worker",msg=attMsg.text?`<div class="hint ${attMsg.cls}" style="margin-top:12px">${esc(attMsg.text)}</div>`:"";
+  let h="";
+  if(mine){
+    const t=todayFor(me.name),state=!t.inT?"Not checked in":t.outT?"Checked out":"Checked in";
+    h+=`<div class="att-card"><div class="who">👤 ${esc(me.name)} · shift of ${esc(fmtDate(businessDate(new Date())))}</div>
+      <div class="state">${state}</div>
+      <div class="sub">${t.inT?"In "+fmtClock(t.inT):"&nbsp;"}${t.outT?" · Out "+fmtClock(t.outT):""}</div>
+      ${!t.inT?`<button class="punch in" data-punch="IN" ${punching?"disabled":""}>${punching?"Getting location…":"Check in"}</button>`
+              :`<button class="punch out" data-punch="OUT" ${punching?"disabled":""}>${punching?"Getting location…":t.outT?"Check out again":"Check out"}</button>`}
+      ${msg}</div>
+      <div style="text-align:center"><button class="linkbtn" id="forOther">Mark attendance for someone else</button></div>`;
+  }else{
+    h+=`<div class="att-card"><div class="state">Mark attendance</div>
+      <div class="sub">This phone isn't linked to a worker, so these entries are flagged for the owner.</div>
+      <button class="punch in" id="forOther" ${punching?"disabled":""}>${punching?"Getting location…":"Choose name"}</button>${msg}</div>`;
+  }
+  const pend=pendingPunches().length;
+  if(pend)h+=`<div class="status bad">${pend} attendance entr${pend>1?"ies":"y"} waiting to upload.<button class="act primary" id="punchSync">Send now</button></div>`;
+  if(mine){
+    h+=`<div class="sec">My times</div>`+(!att.loaded?`<div class="loading">Loading…</div>`:att.days.length
+      ?listBox(att.days.map(d=>`<div class="li"><span>${esc(fmtDate(d.date))}</span><span class="r">${d.inT?"In "+fmtClock(d.inT):"–"}${d.outT?" · Out "+fmtClock(d.outT):""}</span></div>`))
+      :`<div class="list"><div class="empty">No entries yet</div></div>`);
+    h+=`<div class="sec">My advances</div>
+      <div class="stat wide" style="margin-bottom:10px"><div class="k">Taken and not yet settled</div><div class="v">${rs(att.unsettled)}</div></div>
+      ${att.advances.length?listBox(att.advances.map(a=>`<div class="li"><span>${esc(fmtDate(a.date))} <span class="m">${a.by==="Owner"?"added by owner":""}${a.note?" · "+esc(a.note):""}</span></span><b>${rs(a.amount)}</b></div>`)):""}
+      <button class="act" id="addAdv" style="width:100%;margin-top:10px">+ Record an advance I took</button>`;
+    if(att.err)h+=`<div class="status bad">${esc(att.err)}</div>`;
+  }
+  v.innerHTML=h;
+  const pb=v.querySelector("[data-punch]");if(pb)pb.onclick=()=>doPunch(pb.dataset.punch,me.name);
+  if($("forOther"))$("forOther").onclick=punchForOther;
+  if($("punchSync"))$("punchSync").onclick=async()=>{toast("Sending…");await syncPunches();};
+  if($("addAdv"))$("addAdv").onclick=workerAdvanceForm;
+}
+async function punchForOther(){
+  const names=cfg.staff.filter(n=>!(me.status==="worker"&&n===me.name));
+  if(!names.length){toast("No other staff names yet");return;}
+  const name=await pickName("Mark attendance for…",names,me.status==="worker"?"The owner will see that it was marked from your phone":"");
+  if(!name)return;
+  const t=todayFor(name);
+  const yes=await ask({title:name,text:(t.inT?"Checked in at "+fmtClock(t.inT):"Not checked in yet")+(t.outT?", out at "+fmtClock(t.outT):"")+".",yes:"Check in",no:"Check out"});
+  doPunch(yes?"IN":"OUT",name);
+}
+async function doPunch(type,worker){
+  if(punching)return;
+  punching=true;attMsg={cls:"info",text:""};renderAtt();
+  try{
+    const c=await getPosition(),radius=+cfg.radius||100;
+    const dist=Math.round(distM(+cfg.shopLat,+cfg.shopLng,c.latitude,c.longitude));
+    if(dist>radius){attMsg={cls:"warn",text:`You are about ${dist} m from the shop (GPS accurate to ±${Math.round(c.accuracy)} m). Attendance works within ${radius} m. Move closer, or step outside for a better GPS signal, and try again.`};return;}
+    const now=new Date();
+    const p={id:"P"+device+now.getTime(),type,worker,device,time:localStamp(now),bdate:businessDate(now),
+      lat:+c.latitude.toFixed(6),lng:+c.longitude.toFixed(6),acc:Math.round(c.accuracy),dist,synced:false};
+    const list=S.get("punches",[]);list.push(p);S.set("punches",list);
+    buzz();attMsg={cls:"ok",text:`${type==="IN"?"Checked in":"Checked out"}: ${worker} at ${fmtClock(p.time)}`};
+    syncPunches();
+  }catch(e){attMsg={cls:"warn",text:e.message};}
+  finally{punching=false;renderAtt();renderHeader();}
+}
+let punchSyncing=null;
+function syncPunches(){if(!punchSyncing)punchSyncing=doPunchSync().finally(()=>{punchSyncing=null;});return punchSyncing;}
+async function doPunchSync(){
+  if(!local.sheetUrl||!navigator.onLine)return;
+  const all=S.get("punches",[]),pend=all.filter(p=>!p.synced);if(!pend.length)return;
+  try{
+    const sentAt=localStamp(new Date());
+    const d=await sheetPost({action:"punch",punches:pend.map(p=>Object.assign({},p,{sentAt}))});
+    if(d.ok){
+      const ok=new Set(d.saved||[]);all.forEach(p=>{if(ok.has(p.id))p.synced=true;});
+      const cut=Date.now()-40*864e5;
+      S.set("punches",all.filter(p=>!p.synced||Date.parse(p.time.replace(" ","T"))>cut));
+    }
+  }catch(e){}
+  renderHeader();
+  if(curSection==="attendance"){if(me.status==="worker")loadMyData();else renderAtt();}
+}
+function workerAdvanceForm(){
+  $("formTitle").textContent="Record an advance";
+  $("formFoot").classList.add("hidden");
+  $("formBody").innerHTML=`<div class="form">
+    <div class="field"><label for="advAmt">Amount (₹)</label><input id="advAmt" inputmode="numeric" maxlength="6"></div>
+    <div class="field"><label for="advNote">Note (optional)</label><input id="advNote" maxlength="60"></div>
+    <div class="note">Today's date is saved with it. It will be deducted from your next salary.</div>
+    <div class="hint warn" id="advHint"></div>
+    <button class="big-btn" id="advSave">Save</button></div>`;
+  openLayer("formLayer");
+  $("advSave").onclick=async()=>{
+    const amt=parseInt($("advAmt").value.replace(/\D/g,""),10);
+    if(!(amt>0)){$("advHint").textContent="Enter the amount";return;}
+    if(!navigator.onLine){$("advHint").textContent="Needs internet";return;}
+    $("advSave").disabled=true;
+    try{
+      const d=await sheetPost({action:"advance",device,amount:amt,note:$("advNote").value.trim(),id:"A"+device+Date.now()});
+      if(!d.ok)throw new Error(d.error);
+      closeLayer();toast("Advance of "+rs(amt)+" recorded");loadMyData();
+    }catch(e){$("advHint").textContent=e.message||"Could not save";$("advSave").disabled=false;}
+  };
+}
+
+/* =========================================================
+   STOCK  (morning count)
+   ========================================================= */
+let stockDraft={},stockWeekData=null,stockErr="",stockDraftDate="",stockSaved=false;
+const skey=(s,i)=>s+"|"+i;
+function openStock(){renderStock();loadStockWeek();}
+async function loadStockWeek(){
+  if(!local.sheetUrl||!navigator.onLine){renderStock();return;}
+  try{const d=await sheetGet({action:"stockWeek",end:ymd(new Date()),device},20000);if(d.ok){stockWeekData=d;stockErr="";}else stockErr=d.error||"";}
+  catch(e){stockErr=e.message;}
+  renderStock();
+}
+function stockCounts(){return (stockWeekData&&stockWeekData.counts)||{};}
+function renderStock(){
+  const v=$("stockView"),td=ymd(new Date());
+  if(!local.sheetUrl){v.innerHTML=`<div class="status bad">Stock needs this phone to be connected to the Google Sheet. Tell the owner.</div>`;return;}
+  if(stockDraftDate!==td){stockDraft={};stockDraftDate=td;stockSaved=false;}
+  const counts=stockCounts(),todays=counts[td];
+  const prevDate=Object.keys(counts).filter(d=>d<td).sort().pop(),prev=prevDate?counts[prevDate]:null;
+  if(todays&&!Object.keys(stockDraft).length)Object.assign(stockDraft,todays.values);
+  const list=cfg.stockList||[];
+  let h=`<div class="att-card" style="text-align:left"><div class="state" style="font-size:22px">Morning stock count</div>
+    <div class="sub">${esc(fmtDate(td))}${todays?` · counted by ${esc(todays.by)} at ${esc(fmtClock(td+" "+todays.time))}. Saving again replaces it.`:""}</div></div>`;
+  if(stockErr)h+=`<div class="status bad">${esc(stockErr)}</div>`;
+  h+=list.map(sec=>`<div class="st-sec"><h3>${esc(sec.name)}${sec.type==="yesno"?' <span class="m" style="font-weight:700">Chahiye? ✔/✘</span>':""}</h3>${sec.items.map(it=>{
+    const k=skey(sec.name,it),val=stockDraft[k]===undefined?"":stockDraft[k],last=prev&&prev.values[k]!==undefined?prev.values[k]:"";
+    const lastTxt=last!==""?`<small>Last: ${esc(sec.type==="yesno"?(last==="Yes"?"✔":"✘"):last)}</small>`:"";
+    return sec.type==="yesno"
+      ?`<div class="st-row"><div class="nm">${esc(it)}${lastTxt}</div><div class="yn"><button class="y${val==="Yes"?" on":""}" data-yn="${esc(k)}" data-v="Yes" aria-label="Needed">✔</button><button class="n${val==="No"?" on":""}" data-yn="${esc(k)}" data-v="No" aria-label="Not needed">✘</button></div></div>`
+      :`<div class="st-row"><div class="nm">${esc(it)}${lastTxt}</div><div class="st-step"><button data-step="${esc(k)}" data-d="-0.5" aria-label="Less">−</button><input data-sk="${esc(k)}" inputmode="decimal" value="${esc(val)}" aria-label="${esc(it)}"><button data-step="${esc(k)}" data-d="0.5" aria-label="More">+</button></div></div>`;
+  }).join("")}</div>`).join("");
+  h+=`<div class="actions"><button class="big-btn" id="stSave">Save count</button>
+    <button class="act wa" id="stShare">Send to kitchen manager on WhatsApp</button>
+    <button class="act" id="stWeek">This week's counts</button></div>`;
+  v.innerHTML=h;
+  $("stSave").onclick=saveStock;$("stShare").onclick=shareStock;$("stWeek").onclick=showStockWeek;
+}
+$("stockView").addEventListener("click",e=>{
+  const st=e.target.closest("[data-step]");
+  if(st){const k=st.dataset.step,cur=parseFloat(stockDraft[k])||0,n=Math.max(0,cur+parseFloat(st.dataset.d));
+    stockDraft[k]=String(n);const inp=$("stockView").querySelector(`[data-sk="${CSS.escape(k)}"]`);if(inp)inp.value=stockDraft[k];buzz();return;}
+  const yn=e.target.closest("[data-yn]");
+  if(yn){const k=yn.dataset.yn;stockDraft[k]=stockDraft[k]===yn.dataset.v?"":yn.dataset.v;
+    yn.parentNode.querySelectorAll("button").forEach(b=>b.classList.toggle("on",stockDraft[k]===b.dataset.v));buzz();}
+});
+$("stockView").addEventListener("input",e=>{
+  const i=e.target.closest("[data-sk]");if(!i)return;
+  let v=i.value.replace(",",".").replace(/[^\d.]/g,"");const p=v.split(".");if(p.length>2)v=p[0]+"."+p.slice(1).join("");
+  i.value=v;stockDraft[i.dataset.sk]=v;
+});
+async function saveStock(){
+  const td=ymd(new Date()),now=new Date();
+  const values=[];(cfg.stockList||[]).forEach(sec=>sec.items.forEach(it=>{const k=skey(sec.name,it),v=stockDraft[k];if(v!==undefined&&v!=="")values.push({section:sec.name,item:it,value:v});}));
+  if(!values.length){toast("Nothing counted yet");return;}
+  if(!navigator.onLine){ask({title:"No internet",text:"Saving the stock count needs internet. Your numbers stay on screen; try again when online.",yes:"OK",no:null});return;}
+  const b=$("stSave");b.disabled=true;b.textContent="Saving…";
+  try{
+    const d=await sheetPost({action:"stock",id:"S"+device+now.getTime(),date:td,time:localStamp(now).slice(11),device,values});
+    if(!d.ok)throw new Error(d.error);
+    stockSaved=true;toast("Stock count saved");await loadStockWeek();
+    if(cfg.kitchenWa&&await ask({title:"Send to the kitchen manager?",text:"Share today's count on WhatsApp.",yes:"Send",no:"Later"}))shareStock();
+  }catch(e){ask({title:"Not saved",text:e.message||"Could not reach the Sheet",yes:"OK",no:null});}
+  finally{const bb=$("stSave");if(bb){bb.disabled=false;bb.textContent="Save count";}}
+}
+function stockText(){
+  const td=ymd(new Date()),who=me.status==="worker"?me.name:"";
+  let t=`*${cfg.shop} – Stock ${fmtDate(td)}*`+(who?`\nCounted by ${who}`:"")+"\n";
+  const need=[];
+  (cfg.stockList||[]).forEach(sec=>{
+    if(sec.type==="yesno"){sec.items.forEach(it=>{if(stockDraft[skey(sec.name,it)]==="Yes")need.push(it);});return;}
+    const rows=sec.items.filter(it=>(stockDraft[skey(sec.name,it)]||"")!=="").map(it=>`${it}: ${stockDraft[skey(sec.name,it)]}`);
+    if(rows.length)t+=`\n*${sec.name}*\n`+rows.join("\n")+"\n";
+  });
+  t+=`\n*Fresh items needed:* `+(need.length?need.join(", "):"none");
+  return t;
+}
+function shareStock(){
+  const num=(cfg.kitchenWa||"").replace(/\D/g,""),txt=stockText();
+  if(num){window.open("https://wa.me/"+(num.length===10?"91"+num:num)+"?text="+encodeURIComponent(txt),"_blank");return;}
+  if(navigator.share)navigator.share({text:txt}).catch(()=>{});else window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank");
+}
+function showStockWeek(){
+  const counts=stockCounts(),end=ymd(new Date());
+  const dates=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);dates.push(ymd(d));}
+  const dl=d=>{const x=new Date(d+"T12:00:00");return x.toLocaleDateString("en-IN",{weekday:"short"})+"<br>"+x.getDate();};
+  $("formTitle").textContent="This week's counts";$("formFoot").classList.add("hidden");
+  $("formBody").innerHTML=`<div class="scroll-x"><table class="tbl"><tr><th>Item</th>${dates.map(d=>`<th class="num">${dl(d)}</th>`).join("")}</tr>`+
+    (cfg.stockList||[]).map(sec=>`<tr><td colspan="8" style="font-weight:900;padding-top:14px">${esc(sec.name)}</td></tr>`+sec.items.map(it=>`<tr><td>${esc(it)}</td>${dates.map(d=>{
+      const v=counts[d]&&counts[d].values[skey(sec.name,it)];return `<td class="num">${v===undefined||v===""?"–":sec.type==="yesno"?(v==="Yes"?"✔":"✘"):esc(v)}</td>`;}).join("")}</tr>`).join("")).join("")+
+    `</table></div><p class="note" style="color:var(--muted)">${end?"Latest count of each day. Every count is also kept in the Sheet's Stock tab.":""}</p>`;
+  openLayer("formLayer");
+}
+
+/* =========================================================
+   OWNER AREA  (PIN checked by the Google Sheet; nothing private is stored on phones)
+   ========================================================= */
+let own={profiles:{v:0,list:[]},ownerDevices:[],locks:[],payrollStart:"",unknown:[]},ownTab="staff";
+const OWN_TABS=[["staff","👥 Staff"],["attendance","🕒 Attendance"],["advances","💵 Advances"],["payroll","🧮 Salary"],["stocklist","📦 Stock list"],["settings","⚙ Settings"]];
+const clone=o=>JSON.parse(JSON.stringify(o));
+const monthName=m=>{const [y,mo]=m.split("-").map(Number);return new Date(y,mo-1,1).toLocaleDateString("en-IN",{month:"long",year:"numeric"});};
+const shiftMonth=(m,n)=>{let [y,mo]=m.split("-").map(Number);mo+=n;while(mo<1){mo+=12;y--;}while(mo>12){mo-=12;y++;}return y+"-"+pad(mo);};
+async function ownerCall(op,extra,ms){
+  const d=await sheetPost(Object.assign({action:"owner",op,pin:ownerPin},extra||{}),ms||30000);
+  if(!d.ok)throw new Error(d.error||"Something went wrong");return d;
+}
+const ownBusy=t=>{$("ownBody").innerHTML=`<div class="loading">${t||"Loading…"}</div>`;};
+function ownErr(e,retry){$("ownBody").innerHTML=`<div class="status bad">${esc(e.message||e)}<button class="act" id="ownRetry">Try again</button></div>`;$("ownRetry").onclick=retry;}
+
+function openOwner(){
+  if(ownerPin){renderOwner();openLayer("ownLayer");return;}
+  $("ownTabs").classList.add("hidden");
+  $("ownBody").innerHTML=`<div class="form"><div class="field"><label for="pinIn">Owner PIN</label>
+    <input id="pinIn" type="password" inputmode="numeric" maxlength="8" autocomplete="off"><div class="hint warn" id="pinHint"></div></div>
+    <button class="big-btn" id="pinGo">Open</button></div>`;
+  openLayer("ownLayer");
   setTimeout(()=>{const i=$("pinIn");if(i)i.focus();},150);
-  const go=()=>{if($("pinIn").value===cfg.pin)renderSettings();else{$("pinHint").textContent="Wrong PIN";$("pinIn").value="";}};
+  const go=async()=>{
+    const pin=$("pinIn").value,h=$("pinHint");
+    if(!local.sheetUrl){
+      if(pin===LOCAL_PIN){ownerPin=pin;ownTab="settings";renderOwner();}else{h.textContent="Wrong PIN";$("pinIn").value="";}
+      return;
+    }
+    if(!navigator.onLine){h.textContent="The owner area needs internet.";return;}
+    $("pinGo").disabled=true;$("pinGo").textContent="Checking…";
+    try{ownerPin=pin;await loadOwner();renderOwner();}
+    catch(e){ownerPin="";h.textContent=e.message;$("pinIn").value="";$("pinGo").disabled=false;$("pinGo").textContent="Open";}
+  };
   $("pinGo").onclick=go;$("pinIn").onkeydown=e=>{if(e.key==="Enter")go();};
 }
-let staffDraft=[];
-function renderStaffEd(){
-  $("staffEd").innerHTML=staffDraft.length?staffDraft.map((n,i)=>`<div class="staff-row"><input value="${esc(n)}" data-si="${i}" maxlength="24" aria-label="Staff name ${i+1}"><button data-rm="${i}" aria-label="Remove">✕</button></div>`).join(""):`<div class="note">No staff added. Bills won't record who made them.</div>`;
+async function loadOwner(){
+  const d=await ownerCall("login");
+  own={profiles:d.profiles||{v:0,list:[]},ownerDevices:d.ownerDevices||[],locks:d.locks||[],payrollStart:d.payrollStart||"",unknown:d.unknown||[]};
 }
-function readStaff(){if($("staffEd"))$("staffEd").querySelectorAll("[data-si]").forEach(i=>{staffDraft[+i.dataset.si]=i.value;});}
-function renderSettings(){
+function renderOwner(){
+  const tabs=local.sheetUrl?OWN_TABS:OWN_TABS.filter(t=>t[0]==="settings"||t[0]==="stocklist");
+  if(!tabs.some(t=>t[0]===ownTab))ownTab=tabs[0][0];
+  $("ownTabs").innerHTML=tabs.map(t=>`<button class="tab${t[0]===ownTab?" on":""}" data-ot="${t[0]}">${t[1]}</button>`).join("");
+  $("ownTabs").classList.remove("hidden");
+  ({staff:renderStaffTab,attendance:renderAttTab,advances:renderAdvTab,payroll:renderPayTab,stocklist:renderStockListTab,settings:renderSettingsTab})[ownTab]();
+}
+$("ownTabs").addEventListener("click",e=>{const b=e.target.closest("[data-ot]");if(!b)return;ownTab=b.dataset.ot;renderOwner();$("ownBody").scrollTop=0;});
+$("ownBtn").addEventListener("click",openOwner);
+
+/* ---------- Staff ---------- */
+const accIcons=a=>["billing","attendance","stock"].filter(x=>a&&a[x]).map(x=>({billing:"🧾",attendance:"🕒",stock:"📦"})[x]).join(" ")||"no access";
+function renderStaffTab(){
+  const L=own.profiles.list;
+  $("ownBody").innerHTML=`
+    ${own.unknown.length?`<div class="sec" style="margin-top:0">⚠️ Phones not linked to anyone</div><div class="list">${own.unknown.map(u=>`<div class="li"><span><b style="letter-spacing:2px">${esc(u.code)}</b> <span class="m">last used ${esc(fmtDate(u.last))}</span></span><button class="chip" data-link="${esc(u.code)}">Link</button></div>`).join("")}</div>`:""}
+    <div class="sec">Workers</div>
+    ${L.length?L.map((p,i)=>`<button class="wcard" data-pi="${i}"><div class="top"><span>${esc(p.name)}${p.active===false?' <span class="flag info">inactive</span>':""}</span><span>${p.salary?rs(p.salary):'<span class="m">no salary set</span>'}</span></div>
+      <div class="meta">Phone: ${p.devices&&p.devices.length?p.devices.map(esc).join(", "):"not linked"} · ${accIcons(p.access)}${p.slabs&&p.slabs.length?" · "+p.slabs.length+" incentive slab"+(p.slabs.length>1?"s":""):""}</div></button>`).join("")
+      :`<div class="list"><div class="empty">No workers yet. Add each worker, link their phone code, and set their salary.</div></div>`}
+    <button class="big-btn" id="addWorker" style="margin-top:6px">+ Add worker</button>
+    <p class="note" style="color:var(--muted)">This phone's code: <b style="letter-spacing:2px">${device}</b></p>`;
+  $("ownBody").querySelectorAll("[data-pi]").forEach(b=>b.onclick=()=>editProfile(+b.dataset.pi));
+  $("ownBody").querySelectorAll("[data-link]").forEach(b=>b.onclick=()=>linkPhone(b.dataset.link));
+  $("addWorker").onclick=()=>editProfile(-1);
+}
+async function saveProfiles(list){await ownerCall("saveProfiles",{list});await loadOwner();await pullConfig();refreshMe();}
+async function linkPhone(code){
+  if(!own.profiles.list.length){toast("Add the worker first");return;}
+  const name=await pickName("Link phone "+code+" to…",own.profiles.list.map(p=>p.name),"");
+  if(!name)return;
+  const list=clone(own.profiles.list);
+  list.forEach(x=>{x.devices=(x.devices||[]).filter(c=>c!==code);});
+  list.find(x=>x.name===name).devices.push(code);
+  ownBusy("Saving…");
+  try{await saveProfiles(list);toast("Phone "+code+" linked to "+name);renderOwner();}catch(e){ownErr(e,renderOwner);}
+}
+let pDraft=null,pIndex=-1;
+function editProfile(i){
+  pIndex=i;
+  pDraft=i>=0?clone(own.profiles.list[i]):{name:"",devices:[],salary:0,slabs:[[15000,150],[20000,200],[25000,250]],
+    access:{billing:true,attendance:true,stock:false},joined:"",left:"",active:true};
+  pDraft.devices=pDraft.devices||[];pDraft.slabs=pDraft.slabs||[];pDraft.access=pDraft.access||{};
+  $("formTitle").textContent=i>=0?pDraft.name:"New worker";$("formFoot").classList.add("hidden");
+  renderProfileForm();openLayer("formLayer");
+}
+function readProfileForm(){
+  const p=pDraft;
+  p.name=$("pfName").value.trim().replace(/\s+/g," ");
+  p.salary=parseInt(($("pfSalary").value||"").replace(/\D/g,""),10)||0;
+  p.slabs=[...$("pfSlabs").querySelectorAll(".row2")].map(r=>[parseInt(r.querySelector("[data-sa]").value.replace(/\D/g,""),10)||0,parseInt(r.querySelector("[data-sb]").value.replace(/\D/g,""),10)||0]);
+  p.access={billing:$("pfB").checked,attendance:$("pfA").checked,stock:$("pfS").checked};
+  p.joined=$("pfJoin").value;p.left=$("pfLeft").value;p.active=$("pfActive").checked;
+}
+function renderProfileForm(){
+  const p=pDraft;
+  $("formBody").innerHTML=`<div class="form">
+    <div class="field"><label for="pfName">Name</label><input id="pfName" value="${esc(p.name)}" maxlength="24">${pIndex>=0?'<div class="note">Renaming doesn\'t change past bills and attendance, which keep the old name.</div>':""}</div>
+    <div class="field"><label>Phone codes</label>
+      <div class="chipset">${p.devices.map((c,i)=>`<span class="codechip">${esc(c)}<button data-rmc="${i}" aria-label="Remove ${esc(c)}">✕</button></span>`).join("")||'<span class="note">No phone linked yet</span>'}</div>
+      <div class="row2" style="grid-template-columns:1fr auto"><input id="pfCode" maxlength="3" placeholder="Code, e.g. K7Q" autocapitalize="characters"><button class="chip" id="pfAddCode">Add</button></div>
+      <button class="act" id="pfThis" style="width:100%">+ Add this phone (${device})</button>
+      <div class="note">A worker can read their phone's code on the red banner at the top of the app.</div></div>
+    <div class="field"><label for="pfSalary">Monthly salary (₹)</label><input id="pfSalary" inputmode="numeric" value="${p.salary||""}"></div>
+    <div class="field"><label>Daily sales incentive</label>
+      <div class="note" style="margin:0 0 8px">When the shop's sales for the day reach the amount, the worker gets the incentive, if present that day. Only the highest slab reached is paid.</div>
+      <div class="row2" style="margin-bottom:2px"><span class="note">Sales reach ₹</span><span class="note">Incentive ₹</span><span style="width:44px"></span></div>
+      <div id="pfSlabs">${p.slabs.map((x,i)=>`<div class="row2"><input data-sa="${i}" inputmode="numeric" value="${x[0]||""}"><input data-sb="${i}" inputmode="numeric" value="${x[1]||""}"><button class="mini" data-rms="${i}" aria-label="Remove slab">✕</button></div>`).join("")}</div>
+      <button class="act" id="pfAddSlab" style="width:100%">+ Add slab</button></div>
+    <div class="field"><label>Access</label>
+      <label class="chk"><input type="checkbox" id="pfB" ${p.access.billing?"checked":""}>🧾 Billing (and sales summary)</label>
+      <label class="chk"><input type="checkbox" id="pfA" ${p.access.attendance?"checked":""}>🕒 Attendance</label>
+      <label class="chk"><input type="checkbox" id="pfS" ${p.access.stock?"checked":""}>📦 Stock count</label></div>
+    <div class="field"><label for="pfJoin">Joined on (optional)</label><input id="pfJoin" type="date" value="${esc(p.joined)}"><div class="note">Days before this aren't counted as absent.</div></div>
+    <div class="field"><label for="pfLeft">Last working day (optional)</label><input id="pfLeft" type="date" value="${esc(p.left)}"><div class="note">Set this when someone leaves. Days after it aren't counted.</div></div>
+    <label class="chk"><input type="checkbox" id="pfActive" ${p.active!==false?"checked":""}>Active (shows in staff lists)</label>
+    <div class="hint warn" id="pfHint"></div>
+    <button class="big-btn" id="pfSave">Save worker</button>
+    ${pIndex>=0?'<button class="cancel-btn" id="pfDel">Remove worker</button>':""}
+  </div>`;
+  const B=$("formBody");
+  B.querySelectorAll("[data-rmc]").forEach(b=>b.onclick=()=>{readProfileForm();p.devices.splice(+b.dataset.rmc,1);renderProfileForm();});
+  B.querySelectorAll("[data-rms]").forEach(b=>b.onclick=()=>{readProfileForm();p.slabs.splice(+b.dataset.rms,1);renderProfileForm();});
+  $("pfAddCode").onclick=()=>{const c=$("pfCode").value.trim().toUpperCase();readProfileForm();
+    if(!/^[A-Z0-9]{3}$/.test(c)){$("pfHint").textContent="A phone code has 3 letters or numbers";return;}
+    if(p.devices.indexOf(c)<0)p.devices.push(c);renderProfileForm();};
+  $("pfThis").onclick=()=>{readProfileForm();if(p.devices.indexOf(device)<0)p.devices.push(device);renderProfileForm();};
+  $("pfAddSlab").onclick=()=>{readProfileForm();p.slabs.push([0,0]);renderProfileForm();};
+  $("pfSave").onclick=async()=>{
+    readProfileForm();
+    if(!p.name){$("pfHint").textContent="Enter a name";return;}
+    if(p.slabs.some(x=>(x[0]>0)!==(x[1]>0))){$("pfHint").textContent="Fill both numbers in each incentive slab, or remove it";return;}
+    const list=clone(own.profiles.list);
+    if(list.some((x,i)=>i!==pIndex&&x.name.toLowerCase()===p.name.toLowerCase())){$("pfHint").textContent="Another worker already has this name";return;}
+    // a phone belongs to one worker only
+    list.forEach((x,i)=>{if(i!==pIndex)x.devices=(x.devices||[]).filter(c=>p.devices.indexOf(c)<0);});
+    if(pIndex>=0)list[pIndex]=p;else list.push(p);
+    $("pfSave").disabled=true;$("pfSave").textContent="Saving…";
+    try{await saveProfiles(list);closeLayer();toast(p.name+" saved");renderOwner();}
+    catch(e){$("pfHint").textContent=e.message;$("pfSave").disabled=false;$("pfSave").textContent="Save worker";}
+  };
+  if($("pfDel"))$("pfDel").onclick=async()=>{
+    if(!await ask({title:"Remove "+p.name+"?",text:"To keep their salary history for unpaid months, set a last working day and untick Active instead. Removing takes them out of salary calculations.",yes:"Remove",no:"Keep",danger:true}))return;
+    const list=clone(own.profiles.list);list.splice(pIndex,1);
+    try{await saveProfiles(list);closeLayer();toast("Removed");renderOwner();}catch(e){$("pfHint").textContent=e.message;}
+  };
+}
+
+/* ---------- Attendance review ---------- */
+let attDate="",attDay=null;
+function flagChips(r,isToday){
+  const f=r.flags||{},o=[];
+  o.push(r.present?'<span class="flag ok">Present</span>':`<span class="flag">${isToday?"Not in yet":"Absent"}</span>`);
+  if(f.missedOut)o.push('<span class="flag">Missed check-out</span>');
+  if(f.missedIn)o.push('<span class="flag">Checked out, no check-in</span>');
+  if(f.proxy)o.push(`<span class="flag">⚠ Marked from ${esc(f.proxy)}</span>`);
+  if(f.unregistered)o.push('<span class="flag">⚠ Unregistered phone</span>');
+  if(f.clock)o.push(`<span class="flag">⚠ ${esc(f.clock)}</span>`);
+  if(f.edited)o.push(`<span class="flag info">✎ ${esc(f.edited)}</span>`);
+  return o.join("");
+}
+async function renderAttTab(){
+  if(!attDate)attDate=businessDate(new Date());
+  ownBusy();
+  try{attDay=await ownerCall("attendanceDay",{date:attDate});}catch(e){return ownErr(e,renderAttTab);}
+  if(ownTab!=="attendance")return;
+  const today=businessDate(new Date()),isToday=attDate===today;
+  $("ownBody").innerHTML=`<div class="datebar"><button id="aPrev" aria-label="Previous day">‹</button><b>${isToday?"Today":esc(fmtDate(attDate))}</b><button id="aNext" aria-label="Next day" ${attDate>=today?"disabled style='opacity:.3'":""}>›</button></div>
+    <p class="note" style="color:var(--muted);margin:0 4px 10px">Shift of ${esc(fmtDate(attDate))}, ${esc(cfg.shiftStart)} onwards. Tap a worker to correct the day.</p>
+    ${attDay.rows.map((r,i)=>`<button class="wcard" data-ar="${i}"><div class="top"><span>${esc(r.worker)}</span><span>${r.inT?fmtClock(r.inT):"–"} → ${r.outT?fmtClock(r.outT):"–"}</span></div>
+      <div class="meta">${r.late?`Late ${r.late} min · `:""}${r.early?`Left early ${r.early} min · `:""}${flagChips(r,isToday)}</div></button>`).join("")||'<div class="list"><div class="empty">No workers yet</div></div>'}
+    <div class="sec">Every entry this day</div>
+    ${attDay.punches.length?`<div class="scroll-x"><table class="tbl"><tr><th>Time</th><th>Worker</th><th></th><th>Phone</th><th class="num">Distance</th></tr>${attDay.punches.map(p=>`<tr><td>${fmtClock(p.time)}</td><td>${esc(p.worker)}</td><td>${p.type==="IN"?"In":"Out"}</td><td>${esc(p.phone)} <span class="m">${esc(p.phoneOf)}</span>${p.other?' <span class="flag">⚠</span>':""}${p.check?` <span class="flag">${esc(p.check)}</span>`:""}</td><td class="num">${p.dist===""?"":esc(p.dist)+" m"}</td></tr>`).join("")}</table></div>`:'<div class="list"><div class="empty">No entries</div></div>'}`;
+  $("aPrev").onclick=()=>{attDate=shiftDate(attDate,-1);renderAttTab();};
+  $("aNext").onclick=()=>{if(attDate<today){attDate=shiftDate(attDate,1);renderAttTab();}};
+  $("ownBody").querySelectorAll("[data-ar]").forEach(b=>b.onclick=()=>editAttendance(attDay.rows[+b.dataset.ar]));
+}
+function editAttendance(r){
+  const hhmm=t=>t?t.slice(11,16):"";
+  $("formTitle").textContent=r.worker+" · "+fmtDate(attDate);$("formFoot").classList.add("hidden");
+  $("formBody").innerHTML=`<div class="form">
+    <div class="field"><label for="eSt">Day counts as</label><select id="eSt"><option value="">From check-in (automatic)</option><option value="Present">Present</option><option value="Absent">Absent</option></select></div>
+    <div class="field"><label for="eIn">Check-in time</label><input id="eIn" type="time" value="${hhmm(r.inT)}"></div>
+    <div class="field"><label for="eOut">Check-out time</label><input id="eOut" type="time" value="${hhmm(r.outT)}"><div class="note">Times before 12 noon count as the next morning.</div></div>
+    <div class="field"><label for="eWhy">Reason</label><input id="eWhy" maxlength="80" placeholder="e.g. forgot to check out"></div>
+    <div class="hint warn" id="eHint"></div>
+    <button class="big-btn" id="eSave">Save correction</button>
+    <p class="note" style="color:var(--muted)">Corrections are logged in the Sheet's "Attendance edits" tab. The latest one for a day wins.</p></div>`;
+  if(r.flags&&r.flags.edited&&!r.inT&&!r.present)$("eSt").value="Absent";
+  openLayer("formLayer");
+  $("eSave").onclick=async()=>{
+    const why=$("eWhy").value.trim();if(!why){$("eHint").textContent="Add a short reason";return;}
+    $("eSave").disabled=true;
+    try{await ownerCall("edit",{date:attDate,worker:r.worker,status:$("eSt").value,inT:$("eIn").value,outT:$("eOut").value,reason:why});
+      closeLayer();toast("Correction saved");renderAttTab();}
+    catch(e){$("eHint").textContent=e.message;$("eSave").disabled=false;}
+  };
+}
+
+/* ---------- Advances ---------- */
+async function renderAdvTab(){
+  ownBusy();
+  let a,e;
+  try{a=await ownerCall("advances");e=await ownerCall("earnedSoFar",{},60000);}catch(err){return ownErr(err,renderAdvTab);}
+  if(ownTab!=="advances")return;
+  const locked=a.locks||[],active=a.list.filter(x=>x.status!=="Cancelled");
+  const names=own.profiles.list.map(p=>p.name);
+  const card=n=>{const open=active.filter(x=>x.worker===n&&locked.indexOf(x.month)<0).reduce((s,x)=>s+x.amount,0),w=e.workers[n]||{earned:0};
+    const left=w.earned-open;
+    return `<div class="wcard"><div class="top"><span>${esc(n)}</span><span style="color:${left<0?"#C62828":"inherit"}">${left<0?"Over by "+rs(-left):"Room "+rs(left)}</span></div>
+      <div class="meta">Advances not yet settled ${rs(open)} · earned so far ${rs(w.earned)}</div></div>`;};
+  $("ownBody").innerHTML=`<p class="note" style="color:var(--muted);margin:0 4px 10px">"Earned so far" is pay for days already worked in ${e.months.map(monthName).join(" and ")} (not yet paid), before advances.</p>
+    ${names.map(card).join("")||'<div class="list"><div class="empty">No workers yet</div></div>'}
+    <button class="big-btn" id="advAdd" style="margin:6px 0 4px">+ Add advance</button>
+    <div class="sec">All advances</div>
+    ${a.list.length?a.list.map(x=>`<div class="wcard" style="${x.status==="Cancelled"?"opacity:.55":""}"><div class="top"><span>${esc(x.worker)} · ${rs(x.amount)}</span><span class="m">${esc(fmtDate(x.date))}</span></div>
+      <div class="meta">${x.by==="Owner"?"Added by you":"Added by worker"}${x.note?" · "+esc(x.note):""} · settles in ${esc(monthName(x.month))}${locked.indexOf(x.month)>=0?" (paid)":""}${x.status==="Cancelled"?" · CANCELLED":""}</div>
+      ${x.status!=="Cancelled"?`<div class="chips" style="margin:8px 0 0"><button class="chip${x.reviewed?" on":""}" data-rev="${esc(x.id)}" data-v="${x.reviewed?0:1}">${x.reviewed?"✓ Reviewed":"Mark reviewed"}</button>${locked.indexOf(x.month)<0?`<button class="chip" data-can="${esc(x.id)}">Cancel</button>`:""}</div>`:""}</div>`).join("")
+      :'<div class="list"><div class="empty">No advances yet</div></div>'}`;
+  $("advAdd").onclick=ownerAdvanceForm;
+  $("ownBody").querySelectorAll("[data-rev]").forEach(b=>b.onclick=async()=>{b.disabled=true;try{await ownerCall("advanceUpdate",{id:b.dataset.rev,reviewed:b.dataset.v==="1"});renderAdvTab();}catch(err){toast(err.message);b.disabled=false;}});
+  $("ownBody").querySelectorAll("[data-can]").forEach(b=>b.onclick=async()=>{
+    if(!await ask({title:"Cancel this advance?",text:"It won't be deducted. The entry stays in the Sheet marked Cancelled.",yes:"Cancel advance",no:"Keep",danger:true}))return;
+    try{await ownerCall("advanceUpdate",{id:b.dataset.can,cancel:true});toast("Advance cancelled");renderAdvTab();}catch(err){toast(err.message);}
+  });
+}
+function ownerAdvanceForm(){
+  const names=own.profiles.list.filter(p=>p.active!==false).map(p=>p.name);
+  if(!names.length){toast("Add workers first");return;}
+  $("formTitle").textContent="Add advance";$("formFoot").classList.add("hidden");
+  $("formBody").innerHTML=`<div class="form">
+    <div class="field"><label for="oaW">Worker</label><select id="oaW">${names.map(n=>`<option>${esc(n)}</option>`).join("")}</select></div>
+    <div class="field"><label for="oaAmt">Amount (₹)</label><input id="oaAmt" inputmode="numeric" maxlength="6"></div>
+    <div class="field"><label for="oaNote">Note (optional)</label><input id="oaNote" maxlength="60"></div>
+    <div class="note">Today's date is saved. It settles in the oldest month not yet marked paid.</div>
+    <div class="hint warn" id="oaHint"></div><button class="big-btn" id="oaSave">Save advance</button></div>`;
+  openLayer("formLayer");
+  $("oaSave").onclick=async()=>{
+    const amt=parseInt($("oaAmt").value.replace(/\D/g,""),10);if(!(amt>0)){$("oaHint").textContent="Enter the amount";return;}
+    $("oaSave").disabled=true;
+    try{await ownerCall("addAdvance",{worker:$("oaW").value,amount:amt,note:$("oaNote").value.trim(),id:"A"+device+Date.now(),device});
+      closeLayer();toast("Advance saved");renderAdvTab();}
+    catch(e){$("oaHint").textContent=e.message;$("oaSave").disabled=false;}
+  };
+}
+
+/* ---------- Salary ---------- */
+let payMonth="",payData=null;
+function defaultPayMonth(){
+  const cur=ymd(new Date()).slice(0,7),prev=shiftMonth(cur,-1);
+  return (prev>=(own.payrollStart||cur)&&own.locks.indexOf(prev)<0)?prev:cur;
+}
+async function renderPayTab(){
+  if(!payMonth)payMonth=defaultPayMonth();
+  ownBusy("Calculating salaries…");
+  try{payData=await ownerCall("payroll",{month:payMonth},90000);}catch(e){return ownErr(e,renderPayTab);}
+  if(ownTab!=="payroll")return;
+  const d=payData,cur=ymd(new Date()).slice(0,7);
+  const status=d.locked?'<div class="status">✓ Marked paid. These figures are locked.</div>':d.complete?'<div class="status">Month complete. Check the figures, pay on the 7th, then mark it paid.</div>':'<div class="status">Month in progress: figures so far, based on days already worked.</div>';
+  $("ownBody").innerHTML=`<div class="datebar"><button id="mPrev" aria-label="Previous month">‹</button><b>${esc(monthName(payMonth))}</b><button id="mNext" aria-label="Next month" ${payMonth>=cur?"disabled style='opacity:.3'":""}>›</button></div>
+    ${status}
+    ${d.rows.map((r,i)=>`<button class="wcard" data-pr="${i}"><div class="top"><span>${esc(r.worker)}</span><span class="big-num" style="font-size:22px;${r.net<0?"color:#C62828":""}">${rs(r.net)}</span></div>
+      <div class="meta">Present ${r.present} · paid leave ${r.paidLeaves} of ${r.leavesEarned} earned · unpaid ${r.unpaid} · late/early ${r.late+r.early} min</div>
+      <div class="meta">${r.complete||r.locked
+        ?`${rs(r.salary)} − ${rs(Math.round(r.absenceCut))} unpaid days − ${rs(Math.round(r.timeCut))} late/early + ${rs(r.incentives)} incentive − ${rs(r.advances)} advance`
+        :`Earned so far ${rs(Math.round(r.salary-r.absenceCut))} for ${r.present+r.paidLeaves} days − ${rs(Math.round(r.timeCut))} late/early + ${rs(r.incentives)} incentive − ${rs(r.advances)} advance`}</div></button>`).join("")||'<div class="list"><div class="empty">No workers</div></div>'}
+    <div class="actions">
+      ${!d.locked&&d.complete?`<button class="big-btn" id="mLock">Mark ${esc(monthName(payMonth))} as paid</button>`:""}
+      ${d.locked?`<button class="act" id="mUnlock">Unlock ${esc(monthName(payMonth))}</button>`:""}
+    </div>
+    <p class="note" style="color:var(--muted)">Day rate = salary ÷ 30. Minute rate = day rate ÷ ${+cfg.shiftMinutes||720}. Leaves: 1 paid per 6 days worked, up to 4. Tap a worker for day-by-day details.</p>`;
+  $("mPrev").onclick=()=>{payMonth=shiftMonth(payMonth,-1);renderPayTab();};
+  $("mNext").onclick=()=>{if(payMonth<cur){payMonth=shiftMonth(payMonth,1);renderPayTab();}};
+  $("ownBody").querySelectorAll("[data-pr]").forEach(b=>b.onclick=()=>payDetail(d.rows[+b.dataset.pr]));
+  if($("mLock"))$("mLock").onclick=async()=>{
+    if(!await ask({title:"Mark "+monthName(payMonth)+" as paid?",text:"The salaries and advances for this month get locked. New advances will go to the next month.",yes:"Mark paid",no:"Not yet"}))return;
+    try{await ownerCall("lock",{month:payMonth},90000);await loadOwner();toast("Marked paid");renderPayTab();}catch(e){toast(e.message,4000);}
+  };
+  if($("mUnlock"))$("mUnlock").onclick=async()=>{
+    if(!await ask({title:"Unlock "+monthName(payMonth)+"?",text:"Use this only to fix a mistake. Figures will be recalculated from the current data.",yes:"Unlock",no:"Cancel",danger:true}))return;
+    try{await ownerCall("unlock",{month:payMonth});await loadOwner();toast("Unlocked");renderPayTab();}catch(e){toast(e.message,4000);}
+  };
+}
+function payDetail(r){
+  $("formTitle").textContent=r.worker+" · "+monthName(payMonth);$("formFoot").classList.add("hidden");
+  const line=(a,b)=>`<div class="li"><span>${a}</span><b>${b}</b></div>`;
+  $("formBody").innerHTML=listBox([(r.complete||r.locked)?line("Monthly salary",rs(r.salary))+line(`Unpaid days (${r.unpaid})`,"− "+rs(Math.round(r.absenceCut)))
+      :line(`Earned so far (${r.present+r.paidLeaves} days)`,rs(Math.round(r.salary-r.absenceCut))),
+      line(`Late ${r.late} min + early ${r.early} min`,"− "+rs(Math.round(r.timeCut))),line("Incentives","+ "+rs(r.incentives)),
+      line("Advances","− "+rs(r.advances)),`<div class="li"><span><b>Net pay</b></span><b style="font-size:22px;${r.net<0?"color:#C62828":""}">${rs(r.net)}</b></div>`])+
+    `<p class="note" style="color:var(--muted);margin:8px 4px">Present ${r.present} of ${r.counted} days counted · leaves earned ${r.leavesEarned} · paid leaves ${r.paidLeaves} · unpaid ${r.unpaid}${r.employed<r.daysInMonth?` · employed ${r.employed} of ${r.daysInMonth} days`:""}</p>`+
+    (r.advanceList&&r.advanceList.length?`<div class="sec">Advances</div>`+listBox(r.advanceList.map(a=>line(esc(fmtDate(a.date))+(a.note?` <span class="m">${esc(a.note)}</span>`:""),rs(a.amount)))):"")+
+    `<div class="sec">Day by day</div><div class="scroll-x"><table class="tbl"><tr><th>Date</th><th>In</th><th>Out</th><th class="num">Late</th><th class="num">Early</th><th class="num">Shop sales</th><th class="num">Incentive</th></tr>`+
+    r.days.map(x=>`<tr><td>${esc(x.date.slice(8))}</td>${x.present?`<td>${x.inT?fmtClock(x.inT):"–"}</td><td>${x.outT?fmtClock(x.outT):(x.flags&&x.flags.missedOut?'<span class="flag">missed</span>':"–")}</td><td class="num">${x.late||""}</td><td class="num">${x.early||""}</td>`:`<td colspan="4"><span class="flag">Absent</span></td>`}<td class="num">${x.sales?rs(x.sales):""}</td><td class="num">${x.incentive?rs(x.incentive):""}</td></tr>`).join("")+
+    `</table></div>`;
+  openLayer("formLayer");
+}
+
+/* ---------- Stock list editor ---------- */
+let slDraft=null;
+function renderStockListTab(){
+  if(!slDraft)slDraft=clone(cfg.stockList||[]);
+  $("ownBody").innerHTML=`<p class="note" style="color:var(--muted);margin:0 4px 10px">Changes reach every phone. Past counts keep their old names.</p>`+
+    slDraft.map((s,i)=>`<div class="sec-edit"><div class="hdr"><input class="sl-name" data-si="${i}" value="${esc(s.name)}" aria-label="Section name" style="min-height:48px;border-radius:12px;border:2px solid var(--line);background:var(--bg);padding:0 10px;font-weight:800;font-size:16px">
+      <button class="mini" data-sup="${i}" aria-label="Move up">↑</button><button class="mini" data-sdel="${i}" aria-label="Delete section">✕</button></div>
+      <select data-stype="${i}"><option value="count"${s.type!=="yesno"?" selected":""}>Count (numbers, halves allowed)</option><option value="yesno"${s.type==="yesno"?" selected":""}>Chahiye? ✔/✘</option></select>
+      <div style="margin-top:8px">${s.items.map((it,j)=>`<div class="staff-row"><input data-it="${i}.${j}" value="${esc(it)}" aria-label="Item"><button class="mini" data-iup="${i}.${j}" aria-label="Move up">↑</button><button data-idel="${i}.${j}" aria-label="Remove item">✕</button></div>`).join("")}</div>
+      <button class="act" data-iadd="${i}" style="width:100%">+ Add item</button></div>`).join("")+
+    `<button class="act" id="slAddSec" style="width:100%;margin-bottom:10px">+ Add section</button><button class="big-btn" id="slSave">Save stock list</button>`;
+  const B=$("ownBody"),read=()=>{B.querySelectorAll("[data-si]").forEach(x=>{slDraft[+x.dataset.si].name=x.value;});
+    B.querySelectorAll("[data-stype]").forEach(x=>{slDraft[+x.dataset.stype].type=x.value;});
+    B.querySelectorAll("[data-it]").forEach(x=>{const [i,j]=x.dataset.it.split(".").map(Number);slDraft[i].items[j]=x.value;});};
+  const on=(sel,fn)=>B.querySelectorAll(sel).forEach(b=>b.onclick=()=>{read();fn(b);renderStockListTab();});
+  on("[data-sup]",b=>{const i=+b.dataset.sup;if(i>0)[slDraft[i-1],slDraft[i]]=[slDraft[i],slDraft[i-1]];});
+  on("[data-sdel]",b=>{slDraft.splice(+b.dataset.sdel,1);});
+  on("[data-iup]",b=>{const [i,j]=b.dataset.iup.split(".").map(Number),a=slDraft[i].items;if(j>0)[a[j-1],a[j]]=[a[j],a[j-1]];});
+  on("[data-idel]",b=>{const [i,j]=b.dataset.idel.split(".").map(Number);slDraft[i].items.splice(j,1);});
+  on("[data-iadd]",b=>{slDraft[+b.dataset.iadd].items.push("");});
+  $("slAddSec").onclick=()=>{read();slDraft.push({name:"New section",type:"count",items:[""]});renderStockListTab();};
+  $("slSave").onclick=async()=>{
+    read();
+    const list=slDraft.map(s=>({name:s.name.trim(),type:s.type==="yesno"?"yesno":"count",items:[...new Set(s.items.map(x=>x.trim()).filter(Boolean))]})).filter(s=>s.name&&s.items.length);
+    cfg=Object.assign({},cfg,{stockList:list});slDraft=null;
+    toast(cfgResultMsg(await saveCfg(),"Stock list"),3500);renderOwner();
+  };
+}
+
+/* ---------- Settings ---------- */
+let newLoc=null;
+function renderSettingsTab(){
   const f=(id,label,val,note,type="text",mode="text")=>`<div class="field"><label for="${id}">${label}</label><input id="${id}" type="${type}" inputmode="${mode}" value="${esc(val)}" autocomplete="off">${note?`<div class="note">${note}</div>`:""}</div>`;
-  staffDraft=cfg.staff.slice();
-  $("setBody").innerHTML=`<div class="form">
-    <div class="sec">Shared with all devices</div>
-    <div class="note">Saved to the Google Sheet and picked up by every device within a few minutes.</div>
-    <div class="field"><label>Staff names</label><div id="staffEd"></div><button class="act" id="staffAdd" style="width:100%">+ Add staff name</button>
-      <div class="note">Workers pick their name when the app opens each day. Removing a name keeps it on past bills.</div></div>
-    ${f("sShop","Shop name",cfg.shop,"Shown in the header, bills and WhatsApp messages.")}
+  const connected=!!local.sheetUrl,loc=newLoc||(shopSet()?{lat:+cfg.shopLat,lng:+cfg.shopLng}:null);
+  $("ownBody").innerHTML=`<div class="form">
+    <div class="sec" style="margin-top:0">Shop and billing <span class="m" style="font-weight:600">· shared with all phones</span></div>
+    ${f("sShop","Shop name",cfg.shop,"")}
     ${f("sUpi","UPI ID",cfg.upi,"The QR on every bill uses this, with the amount filled in.")}
-    ${f("sPayee","Name on UPI QR",cfg.payee,"Shown to the customer in their payment app.")}
-    ${f("sWa","Owner WhatsApp number",cfg.ownerWa,"Optional. If set, the summary goes straight to this number.","tel","numeric")}
-    ${f("sPin","Owner PIN",cfg.pin,"4 to 8 digits. Needed for settings and for voiding bills.","tel","numeric")}
-    ${f("sEvery","Free Mojito on every Nth visit",cfg.rewardEvery,"3 means the 3rd, 6th, 9th visit… The visit before gets a reminder. 0 switches rewards off.","tel","numeric")}
+    ${f("sPayee","Name on UPI QR",cfg.payee,"")}
+    ${f("sWa","Owner WhatsApp number",cfg.ownerWa,"Optional. Sales summaries go straight to this number.","tel","numeric")}
+    ${f("sKitchen","Kitchen manager WhatsApp number",cfg.kitchenWa,"The morning stock count is sent here.","tel","numeric")}
+    ${f("sEvery","Free Mojito on every Nth visit",cfg.rewardEvery,"3 = the 3rd, 6th, 9th visit. 0 switches rewards off.","tel","numeric")}
     ${f("sMin","Reward minimum order (₹)",cfg.rewardMin,"Orders of this amount or more qualify.","tel","numeric")}
     <div class="field"><label for="sMsg">Message at the end of the WhatsApp bill</label><textarea id="sMsg">${esc(cfg.billMsg)}</textarea><div class="note">Put *stars* around text to make it bold in WhatsApp.</div></div>
     <button class="act" id="sPrices">✏️ Edit item prices</button>
-    <div class="sec" style="margin-top:18px">This device only</div>
-    ${f("sUrl","Google Sheet web app URL",local.sheetUrl,"From Apps Script, ends with /exec. When you connect a device, it loads the shared settings from the Sheet.","url","url")}
+    <div class="sec">Shift and attendance</div>
+    ${f("sStart","Shift starts at",cfg.shiftStart,"","time")}
+    ${f("sGrace","Grace period (minutes)",cfg.grace,"After the grace period, every minute from the shift start is deducted.","tel","numeric")}
+    ${f("sHours","Shift length (hours)",(+cfg.shiftMinutes||720)/60,"","tel","decimal")}
+    <div class="field"><label>Shop location</label><div style="font-weight:800" id="locTxt">${loc?`${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}${newLoc?" (new, not saved yet)":""}`:"Not set"}</div>
+      <button class="act" id="setLoc" style="width:100%;margin-top:8px">📍 Set shop location here</button>
+      <div class="note">Stand inside the shop and tap. Check-in works within the distance below.</div></div>
+    ${f("sRadius","Allowed distance (metres)",cfg.radius,"","tel","numeric")}
+    ${connected?`<div class="sec">Owner</div>
+      ${f("sStartMonth","Salary tracking starts from",own.payrollStart,"Months before this are treated as already paid.","month")}
+      <label class="chk"><input type="checkbox" id="sOwnerPhone" ${isOwnerPhone()?"checked":""}>This is the owner's phone (all sections, no warning banner)</label>
+      <button class="act" id="sPinChg">Change owner PIN</button>`:""}
+    <div class="sec">This phone only</div>
+    ${f("sUrl","Google Sheet web app URL",local.sheetUrl,"From Apps Script, ends with /exec.","url","url")}
     ${f("sTok","Sheet secret key",local.token,"Same as SECRET in the Apps Script code.")}
-    <div class="field"><label>Device code</label><div class="devcode">${device}</div><div class="note">Set automatically. Bill numbers from this device start with it.</div></div>
+    <div class="field"><label>Phone code</label><div class="devcode">${device}</div></div>
     <button class="act" id="sTest">Test Google Sheet connection</button>
-    <button class="big-btn" id="sSave">Save settings</button>
-  </div>`;
-  renderStaffEd();
-  $("staffAdd").onclick=()=>{readStaff();staffDraft.push("");renderStaffEd();const ins=$("staffEd").querySelectorAll("input");ins[ins.length-1].focus();};
-  $("staffEd").onclick=e=>{const b=e.target.closest("[data-rm]");if(!b)return;readStaff();staffDraft.splice(+b.dataset.rm,1);renderStaffEd();};
+    <div class="hint warn" id="sHint"></div>
+    <button class="big-btn" id="sSave">Save settings</button></div>`;
   $("sPrices").onclick=()=>{priceDraft={};priceCat="momos";renderPrices();openLayer("priceLayer");};
+  $("setLoc").onclick=async()=>{
+    const b=$("setLoc");b.disabled=true;b.textContent="Getting location…";
+    try{const c=await getPosition();
+      if(await ask({title:"Use this as the shop location?",text:`GPS accuracy ±${Math.round(c.accuracy)} m.${c.accuracy>50?" That's not very accurate. Try again near the door or a window for a better fix.":""}`,yes:"Use it",no:"Cancel"})){
+        newLoc={lat:+c.latitude.toFixed(6),lng:+c.longitude.toFixed(6)};
+        $("locTxt").textContent=`${newLoc.lat.toFixed(5)}, ${newLoc.lng.toFixed(5)} (new, tap Save settings)`;}
+    }catch(e){ask({title:"No location",text:e.message,yes:"OK",no:null});}
+    b.disabled=false;b.textContent="📍 Set shop location here";
+  };
+  if($("sOwnerPhone"))$("sOwnerPhone").onchange=async e=>{
+    try{await ownerCall("ownerDevice",{device,on:e.target.checked});await loadOwner();await refreshMe();toast(e.target.checked?"This is now the owner's phone":"Owner phone removed");}
+    catch(err){toast(err.message);e.target.checked=!e.target.checked;}
+  };
+  if($("sPinChg"))$("sPinChg").onclick=changePinForm;
   $("sTest").onclick=async()=>{
     const url=$("sUrl").value.trim(),tok=$("sTok").value.trim();
     if(!url){toast("Paste the web app URL first");return;}
     try{const d=await withTimeout(12000,async sig=>(await fetch(sheetLink({action:"ping"},url,tok),{signal:sig})).json());
-      toast(d.ok?"✓ Connected to "+(d.sheet||"Google Sheet"):"Sheet replied: "+(d.error||"error"),3500);}
-    catch(e){toast("Could not reach the Sheet. Check the URL and internet.",3500);}
+      toast(d.ok?"✓ Connected to "+(d.sheet||"Google Sheet"):"Sheet replied: "+(d.error||"error"),4000);}
+    catch(e){toast("Could not reach the Sheet. Check the URL and internet.",4000);}
   };
-  $("sSave").onclick=saveSettings;
+  $("sSave").onclick=saveSettingsTab;
 }
-async function saveSettings(){
-  const v=id=>$(id).value.trim();
-  readStaff();
-  const ev=parseInt(v("sEvery"),10),mn=parseInt(v("sMin"),10);
-  if(!/^\d{4,8}$/.test(v("sPin"))){ask({title:"PIN must be 4 to 8 digits",yes:"OK",no:null});return;}
-  if(v("sUpi")&&!/^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(v("sUpi"))){ask({title:"Check the UPI ID",text:"It should look like name@bank.",yes:"OK",no:null});return;}
-  if(!(ev>=0)||!(mn>=0)){ask({title:"Check the reward numbers",text:"Use whole numbers, like 3 and 300.",yes:"OK",no:null});return;}
-  const staff=[...new Set(staffDraft.map(s=>s.trim().replace(/\s+/g," ")).filter(Boolean))];
-  const next=pickShared(Object.assign({},cfg,{shop:v("sShop")||"Momos BC",upi:v("sUpi"),payee:v("sPayee"),ownerWa:v("sWa"),pin:v("sPin"),
-    rewardEvery:ev,rewardMin:mn,billMsg:$("sMsg").value.trim(),staff}));
+function changePinForm(){
+  $("formTitle").textContent="Change owner PIN";$("formFoot").classList.add("hidden");
+  $("formBody").innerHTML=`<div class="form"><div class="field"><label for="np1">New PIN (4 to 8 digits)</label><input id="np1" type="password" inputmode="numeric" maxlength="8"></div>
+    <div class="field"><label for="np2">New PIN again</label><input id="np2" type="password" inputmode="numeric" maxlength="8"></div>
+    <div class="hint warn" id="npHint"></div><button class="big-btn" id="npSave">Change PIN</button>
+    <p class="note" style="color:var(--muted)">The PIN is stored only as a scrambled code inside your Google Sheet's script, and works on every phone.</p></div>`;
+  openLayer("formLayer");
+  $("npSave").onclick=async()=>{
+    const a=$("np1").value,b=$("np2").value;
+    if(!/^\d{4,8}$/.test(a)){$("npHint").textContent="Use 4 to 8 digits";return;}
+    if(a!==b){$("npHint").textContent="The two PINs don't match";return;}
+    try{await ownerCall("setPin",{newPin:a});ownerPin=a;closeLayer();toast("PIN changed for all phones");}catch(e){$("npHint").textContent=e.message;}
+  };
+}
+async function saveSettingsTab(){
+  const v=id=>$(id)?$(id).value.trim():"",hint=$("sHint");
+  const ev=parseInt(v("sEvery"),10),mn=parseInt(v("sMin"),10),gr=parseInt(v("sGrace"),10),hrs=parseFloat(v("sHours")),rad=parseInt(v("sRadius"),10);
+  if(v("sUpi")&&!/^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(v("sUpi"))){hint.textContent="Check the UPI ID. It should look like name@bank.";return;}
+  if(!(ev>=0)||!(mn>=0)){hint.textContent="Check the reward numbers (whole numbers, like 3 and 300).";return;}
+  if(!/^\d{2}:\d{2}$/.test(v("sStart"))||!(gr>=0)||!(hrs>0&&hrs<=24)||!(rad>=20)){hint.textContent="Check the shift and distance settings (distance at least 20 m).";return;}
+  const next=pickShared(Object.assign({},cfg,{shop:v("sShop")||"Momos BC",upi:v("sUpi"),payee:v("sPayee"),ownerWa:v("sWa"),kitchenWa:v("sKitchen"),
+    rewardEvery:ev,rewardMin:mn,billMsg:$("sMsg").value.trim(),shiftStart:v("sStart"),grace:gr,shiftMinutes:Math.round(hrs*60),radius:rad},
+    newLoc?{shopLat:newLoc.lat,shopLng:newLoc.lng}:{}));
   const sharedChanged=JSON.stringify(next)!==JSON.stringify(pickShared(cfg));
   const linkChanged=v("sUrl")!==local.sheetUrl||v("sTok")!==local.token;
+  const startMonth=v("sStartMonth");
   local={sheetUrl:v("sUrl"),token:v("sTok")};S.set("local",local);
-  closeLayer();
+  $("sSave").disabled=true;$("sSave").textContent="Saving…";
   if(linkChanged&&local.sheetUrl){
-    // a newly connected device takes the shared settings from the Sheet
+    // a newly connected phone takes the shared settings from the Sheet, and the PIN is checked there from now on
     cfgMeta={v:0,dirty:false};S.set("cfgMeta",cfgMeta);
-    toast("Connecting to Google Sheet…");
+    try{await loadOwner();}
+    catch(e){ownerPin="";closeLayer();pullConfig();refreshMe();
+      ask({title:"Connected, but the PIN wasn't accepted",text:(e.message||"Wrong PIN")+". Open 🔒 again with the owner PIN.",yes:"OK",no:null});return;}
     const r=await pullConfig();
-    if(r==="error"||r==="offline")toast("Saved, but could not reach the Sheet. Check the URL, secret key and internet.",4000);
-    else toast(r==="seeded"?"Connected. This device's settings are now the shared settings.":"Connected. Shared settings loaded from the Sheet.",4000);
     if(sharedChanged&&(r==="seeded"||r==="same"||r==="pushed")){cfg=next;await saveCfg();}
-    else if(sharedChanged&&r==="loaded")ask({title:"Shared settings came from the Sheet",text:"Changes you made to shared settings were not applied, because this device was just connected. Open settings again to change them.",yes:"OK",no:null});
-    syncPending();
-  }else if(sharedChanged){
-    cfg=next;toast(cfgResultMsg(await saveCfg(),"Settings"),3500);
-  }else toast("Settings saved");
-  if(isOpen("sumLayer"))loadSummary();
+    else if(sharedChanged&&r==="loaded")ask({title:"Shared settings came from the Sheet",text:"This phone was just connected, so the Sheet's settings were loaded instead of your changes. Edit them again if needed.",yes:"OK",no:null});
+    newLoc=null;await refreshMe();syncPending();syncPunches();
+    toast(r==="error"||r==="offline"?"Saved, but the Sheet couldn't be reached. Check the URL, secret and internet.":"Connected to the Google Sheet",4000);
+    renderOwner();return;
+  }
+  try{if(local.sheetUrl&&startMonth&&startMonth!==own.payrollStart){await ownerCall("setPayrollStart",{month:startMonth});own.payrollStart=startMonth;}}catch(e){toast(e.message);}
+  if(sharedChanged){cfg=next;newLoc=null;toast(cfgResultMsg(await saveCfg(),"Settings"),3500);}else toast("Settings saved");
+  renderOwner();
 }
 
 /* =========================================================
@@ -1259,12 +2004,19 @@ $("priceSave").addEventListener("click",async()=>{
    START
    ========================================================= */
 async function keepAwake(){try{if("wakeLock" in navigator&&document.visibilityState==="visible")await navigator.wakeLock.request("screen");}catch(e){}}
-document.addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible")return;keepAwake();checkNudge();checkStaff();pullConfig();syncPending();});
-setInterval(()=>{checkNudge();checkStaff();},60000);
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState!=="visible")return;
+  keepAwake();checkNudge();checkStaff();pullConfig();refreshMe();syncPending();syncPunches();
+  if(curSection==="attendance")openAttendance();
+});
+setInterval(()=>{checkNudge();checkStaff();if(curSection==="attendance"&&!punching)renderAtt();},60000);
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
 
 if(!menu)$("chooser").classList.remove("hidden");
-applyMenu();keepAwake();checkStaff();syncPending();pullConfig();
+applyMenu();keepAwake();checkStaff();syncPending();syncPunches();
+if(curSection==="attendance")openAttendance();
+if(curSection==="stock")openStock();
+pullConfig();refreshMe();
 </script>
 </body>
 </html>

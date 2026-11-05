@@ -1,5 +1,5 @@
 // Offline support. Bump VERSION whenever you upload a new index.html.
-const VERSION = "mbc-v3";
+const VERSION = "mbc-v4";
 const FILES = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 const APP_PATHS = FILES.map(f => new URL(f, self.location).pathname);
 
