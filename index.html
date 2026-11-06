@@ -30,6 +30,18 @@ html[data-theme="night"]{
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%}
+html{overscroll-behavior-y:none}
+.layer-body{overscroll-behavior:contain}
+.pull-ind{position:fixed;top:calc(74px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:95;background:#151412;color:#FFC21A;font-weight:800;padding:8px 16px;border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.sync{font-size:13px;font-weight:700;opacity:.8;margin-left:6px}
+.secnav{overflow-x:auto;scrollbar-width:none}.secnav::-webkit-scrollbar{display:none}
+.secnav button{flex:1 0 auto;padding:0 14px;font-size:15px}
+body.meal-mode .tprice{display:none}
+body.meal-mode header.top{box-shadow:inset 0 -6px 0 #1FA855}
+.cal{display:grid!important;grid-template-columns:auto 1fr;gap:4px 12px}
+.cal .amts{text-align:right;white-space:nowrap}
+.wcard .tap{cursor:pointer}
+.chip.wa{background:#1FA855;color:#fff;border-color:#1FA855}
 body{background:var(--bg);color:var(--text);font-size:17px;line-height:1.35;overscroll-behavior:none;touch-action:manipulation;
   padding-top:env(safe-area-inset-top,0px)}
 button,input{font:inherit;color:inherit}
@@ -327,6 +339,7 @@ html[data-theme="night"] .reward{background:#3A2E05;color:#FFE7A0;border-color:#
 <nav class="tabs" id="tabs"></nav>
 <main id="grid"></main>
 <main id="attView" class="view hidden"></main>
+<main id="advView" class="view hidden"></main>
 <main id="stockView" class="view hidden"></main>
 
 <div class="bar"><button id="barBtn" disabled></button></div>
@@ -366,7 +379,7 @@ html[data-theme="night"] .reward{background:#3A2E05;color:#FFE7A0;border-color:#
 
 <!-- Owner area -->
 <section class="layer hidden" id="ownLayer" aria-label="Owner">
-  <div class="layer-head"><button class="back-btn" data-close>← Back</button><h2>🔒 Owner</h2></div>
+  <div class="layer-head"><button class="back-btn" data-close>← Back</button><h2>🔒 Owner <span class="sync hidden" id="ownSync">⟳ syncing</span></h2></div>
   <nav class="owntabs hidden" id="ownTabs"></nav>
   <div class="layer-body" id="ownBody"></div>
 </section>
@@ -427,6 +440,7 @@ html[data-theme="night"] .reward{background:#3A2E05;color:#FFE7A0;border-color:#
 </div>
 
 <div class="toast hidden" id="toast"></div>
+<div class="pull-ind hidden" id="pullInd"></div>
 <input type="file" id="restoreFile" accept="application/json,.json" class="hidden">
 
 <script>
@@ -580,7 +594,10 @@ let curSection=S.get("section","billing");
 let ownerPin="";
 
 let menu=S.get("menu",null);
-let cart=S.get("cart",[]);
+let billCart=S.get("cart",[]),mealCart=S.get("mealCart",[]);
+let cart=S.get("section","billing")==="meals"?mealCart:billCart;   // the cart on screen
+const NEED_SCRIPT=5;                    // Google Sheet script version this app expects
+let scriptVersion=S.get("scriptVersion",0);
 let bills=S.get("bills",[]);
 let curCat=S.get("cat","momos");
 let staffDay=S.get("staffDay",{bdate:"",name:""});
@@ -621,7 +638,13 @@ function qtyOf(itemId){return cart.filter(l=>l.itemId===itemId&&!l.free).reduce(
 function qtyKey(key){const l=cart.find(x=>x.key===key);return l?l.qty:0;}
 function catOf(l){return l.cat||NAME_CAT[l.item||l.name]||"other";}
 function platesOf(l){return (catOf(l)==="momos"&&l.size==="Half"?0.5:1)*l.qty;}
-function saveCart(){S.set("cart",cart);}
+const mealMode=()=>curSection==="meals";
+function saveCart(){if(mealMode()){mealCart=cart;S.set("mealCart",cart);}else{billCart=cart;S.set("cart",cart);}}
+function swapCart(from,to){
+  if(from===to)return;
+  if(from==="meals")mealCart=cart;else if(from==="billing")billCart=cart;
+  if(to==="meals")cart=mealCart;else if(to==="billing")cart=billCart;
+}
 function pendingCount(){return bills.filter(b=>!b.synced).length;}
 
 let toastT;
@@ -649,7 +672,8 @@ window.addEventListener("popstate",()=>{
   $(id).classList.add("hidden");
   if(id==="optScrim"){renderGrid();if(isOpen("billLayer"))renderBill();}
   if(id==="billLayer"){renderGrid();renderBar();}
-  if(id==="ownLayer"){ownerPin="";slDraft=null;newLoc=null;}
+  if(id==="ownLayer"){ownerPin="";slDraft=null;newLoc=null;ownCache={};ownTab="sales";}
+  if(id==="sumLayer")S.set("reopen","");
   if(!stack.length)checkStaff();
   if(id==="formLayer")$("formFoot").classList.add("hidden");
 });
@@ -662,18 +686,20 @@ function currentStaff(){return staffDay.bdate===businessDate(new Date())?staffDa
 const isOwnerPhone=()=>me.status==="owner";
 function sections(){
   if(!local.sheetUrl)return ["billing"];
-  if(me.status==="owner")return ["billing","attendance","stock"];
-  if(me.status==="worker")return ["billing","attendance","stock"].filter(x=>me.access&&me.access[x]);
-  return cfg.staff.length?["billing","attendance"]:["billing"];   // not linked yet: keeps working, flagged for the owner
+  const meals=cfg.staff.length?["meals"]:[];
+  if(me.status==="owner")return ["billing"].concat(meals,["attendance","stock"]);
+  if(me.status==="worker")return ["billing","meals","attendance","advances","stock"].filter(x=>x==="meals"?meals.length:x==="advances"?true:me.access&&me.access[x]);
+  return cfg.staff.length?["billing","meals","attendance"]:["billing"];   // not linked yet: keeps working, flagged for the owner
 }
+const ownerView=()=>!local.sheetUrl||me.status==="owner"||!!ownerPin;   // full history and full customer numbers
 const canSummary=()=>!local.sheetUrl||me.status==="owner"||(me.status==="worker"&&me.access&&me.access.billing)||(me.status!=="worker"&&!cfg.staff.length);
 function renderHeader(){
   $("brandName").textContent=cfg.shop;
   const who=currentStaff(),sec=sections();
-  if(sec.indexOf(curSection)<0)curSection=sec[0]||"none";
-  const billing=curSection==="billing";
-  $("brandSub").textContent=billing&&cfg.staff.length?(who?"👤 "+who+" · change":"👤 Choose staff"):me.status==="worker"?"👤 "+me.name:(menu==="night"?"12 AM – 6 AM":"6 PM – 12 AM");
-  const p=pendingCount()+pendingPunches().length,e=$("pend");
+  if(sec.indexOf(curSection)<0){const to=sec[0]||"none";swapCart(curSection,to);curSection=to;}
+  const billing=curSection==="billing",gridOn=billing||curSection==="meals";
+  const p=pendingCount()+pendingPunches().length+pendingMeals().length,e=$("pend");
+  $("brandSub").textContent=(billing&&cfg.staff.length?(who?"👤 "+who+" · change":"👤 Choose staff"):me.status==="worker"?"👤 "+me.name:(menu==="night"?"12 AM – 6 AM":"6 PM – 12 AM"))+(local.sheetUrl&&p?` · ⏳ ${p} to upload`:"");
   e.textContent=p;e.classList.toggle("hidden",!(local.sheetUrl&&p));
   $("sumBtn").classList.toggle("hidden",!canSummary()||!billing);
   $("menuBadge").classList.toggle("hidden",!billing);
@@ -682,21 +708,27 @@ function renderHeader(){
   if(!local.sheetUrl)warn=`⚠️ This phone is not set up. Tell the owner. Phone code: ${device}`;
   else if(me.status==="unregistered"&&cfg.staff.length)warn=`⚠️ This phone (code ${device}) is not linked to a worker. Tell the owner.`;
   else if(me.status==="worker"&&!sec.length)warn="⚠️ No sections are switched on for you. Ask the owner.";
+  else if(me.status==="owner"&&scriptVersion&&scriptVersion<NEED_SCRIPT)warn=`⚠️ The Google Sheet script is out of date (version ${scriptVersion}, app needs ${NEED_SCRIPT}). Paste the new Code.gs and redeploy: Deploy → Manage deployments → Edit → New version.`;
   $("banner").textContent=warn;$("banner").classList.toggle("hidden",!warn);
   // section switch
-  const names={billing:"🧾 Billing",attendance:"🕒 Attendance",stock:"📦 Stock"};
+  const names={billing:"🧾 Billing",meals:"🍽 Meals",attendance:"🕒 Attendance",advances:"💵 Advances",stock:"📦 Stock"};
   $("secNav").innerHTML=sec.map(x=>`<button data-sec="${x}" class="${x===curSection?"on":""}">${names[x]}</button>`).join("");
   $("secNav").classList.toggle("hidden",sec.length<2);
-  ["tabs","grid"].forEach(id=>$(id).classList.toggle("hidden",!billing));
-  document.querySelector(".bar").classList.toggle("hidden",!billing);
+  ["tabs","grid"].forEach(id=>$(id).classList.toggle("hidden",!gridOn));
+  document.querySelector(".bar").classList.toggle("hidden",!gridOn);
+  document.body.classList.toggle("meal-mode",curSection==="meals");
   $("attView").classList.toggle("hidden",curSection!=="attendance");
+  $("advView").classList.toggle("hidden",curSection!=="advances");
   $("stockView").classList.toggle("hidden",curSection!=="stock");
   if(!billing)$("nudge").classList.add("hidden");
 }
 $("secNav").addEventListener("click",e=>{
   const b=e.target.closest("[data-sec]");if(!b)return;
-  curSection=b.dataset.sec;S.set("section",curSection);renderHeader();checkNudge();window.scrollTo(0,0);
+  const to=b.dataset.sec;swapCart(curSection,to);
+  curSection=to;S.set("section",curSection);renderHeader();checkNudge();window.scrollTo(0,0);
+  if(curSection==="billing"||curSection==="meals"){renderGrid();renderBar();}
   if(curSection==="attendance")openAttendance();
+  if(curSection==="advances")openAdvances();
   if(curSection==="stock")openStock();
 });
 async function refreshMe(){
@@ -706,6 +738,7 @@ async function refreshMe(){
     if(!d.ok)return;
     const prev=JSON.stringify(me);
     me={status:d.status,name:d.name||"",access:d.access||{}};S.set("me",me);
+    scriptVersion=Number(d.version)||4;S.set("scriptVersion",scriptVersion);renderHeader();
     if(JSON.stringify(me)!==prev){checkStaff();renderHeader();if(curSection==="attendance")openAttendance();if(curSection==="stock")openStock();}
   }catch(e){}
 }
@@ -772,6 +805,7 @@ function renderTabs(){
 $("tabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;curCat=b.dataset.cat;S.set("cat",curCat);renderTabs();renderGrid();window.scrollTo(0,0);b.scrollIntoView({inline:"center",block:"nearest"});});
 
 function priceLabel(item){
+  if(mealMode())return "";
   const m=mi();
   if(item.price)return rs(item.price[m]);
   const all=item.options.flatMap(o=>o.sizes.map(s=>s.price[m]));
@@ -801,7 +835,7 @@ $("grid").addEventListener("click",e=>{
   else openOptions(item);
 });
 function addLine(item,opt,size){
-  const m=mi();
+  const m=mealMode()?0:mi();     // staff meals are always valued at Evening prices
   const key=item.id+"|"+(opt?opt.key:"")+"|"+(size&&size.name?size.name:"");
   const l=cart.find(x=>x.key===key);
   if(l)l.qty++;
@@ -824,11 +858,11 @@ function renderOptions(){
     <div class="oname"><i class="dot ${o.veg?"v":"n"}"></i>${esc(o.name)}</div>
     <div class="osizes">${o.sizes.map(s=>{
       const key=item.id+"|"+o.key+"|"+s.name,q=item.free?0:qtyKey(key);
-      return `<div class="sz${q?" has":""}"><button class="sz-add" data-o="${o.key}" data-s="${esc(s.name)}">${s.name?esc(s.name):"Add"}<b>${rs(s.price[m])}</b></button>
+      return `<div class="sz${q?" has":""}"><button class="sz-add" data-o="${o.key}" data-s="${esc(s.name)}">${mealMode()?`<b>${s.name?esc(s.name):"Add"}</b>`:`${s.name?esc(s.name):"Add"}<b>${rs(s.price[m])}</b>`}</button>
         ${q?`<span class="tqty">${q}</span><button class="sz-minus" data-key="${esc(key)}" aria-label="Remove one">−</button>`:""}</div>`;
     }).join("")}</div></div>`).join("");
   const c=cartCount();
-  $("optDone").textContent=item.free?"Close":c?`Done  (${c} item${c>1?"s":""} · ${rs(cartTotal())})`:"Close";
+  $("optDone").textContent=item.free?"Close":c?`Done  (${c} item${c>1?"s":""}${mealMode()?"":" · "+rs(cartTotal())})`:"Close";
 }
 $("optBody").addEventListener("click",e=>{
   const mn=e.target.closest(".sz-minus");
@@ -847,11 +881,46 @@ $("optScrim").addEventListener("click",e=>{if(e.target.id==="optScrim")closeLaye
 
 function renderBar(){
   const c=cartCount(),b=$("barBtn");
+  if(mealMode()){
+    if(!c){b.disabled=true;b.innerHTML="Tap what was eaten by staff";return;}
+    b.disabled=false;b.innerHTML=`<span class="cnt">🍽 ${c}</span><span class="amt">${c} item${c>1?"s":""}</span><span class="go">Save meal ›</span>`;return;
+  }
   if(!c){b.disabled=true;b.innerHTML="Tap items to start a bill";return;}
   b.disabled=false;
   b.innerHTML=`<span class="cnt">🛒 ${c}</span><span class="amt">${rs(cartTotal())}</span><span class="go">View bill ›</span>`;
 }
-$("barBtn").addEventListener("click",()=>{if(cart.length){renderBill();openLayer("billLayer");}});
+$("barBtn").addEventListener("click",()=>{if(!cart.length)return;if(mealMode()){saveMeal();return;}renderBill();openLayer("billLayer");});
+
+/* =========================================================
+   STAFF MEALS  (same menu, no prices; tagged to an employee)
+   ========================================================= */
+function pendingMeals(){return S.get("meals",[]).filter(m=>!m.synced);}
+async function saveMeal(){
+  if(!cart.length)return;
+  if(!cfg.staff.length){toast("The owner needs to add staff names first");return;}
+  const name=await pickName("Who ate this?",cfg.staff,"Tap the employee's name");
+  if(!name)return;
+  const now=new Date();
+  const m={id:"M"+device+now.getTime(),bdate:businessDate(now),local:localStamp(now),employee:name,device,
+    lines:cart.map(l=>({n:lineName(l),item:l.name,cat:catOf(l),opt:l.opt,size:l.size,price:l.price,qty:l.qty})),
+    value:cart.reduce((a,l)=>a+l.price*l.qty,0),synced:false};
+  const list=S.get("meals",[]);list.push(m);S.set("meals",list);
+  cart=[];saveCart();renderGrid();renderBar();renderHeader();buzz();
+  toast(`Meal saved for ${name}`+(me.status==="worker"&&name!==me.name?" (the owner sees it was logged from your phone)":""),3000);
+  syncMeals();
+}
+let mealSyncing=null;
+function syncMeals(){if(!mealSyncing)mealSyncing=doMealSync().finally(()=>{mealSyncing=null;});return mealSyncing;}
+async function doMealSync(){
+  if(!local.sheetUrl||!navigator.onLine)return;
+  const all=S.get("meals",[]),pend=all.filter(m=>!m.synced);if(!pend.length)return;
+  try{
+    const d=await sheetPost({action:"meals",meals:pend});
+    if(d.ok){const ok=new Set(d.saved||[]);all.forEach(m=>{if(ok.has(m.id))m.synced=true;});
+      const cut=Date.now()-40*864e5;S.set("meals",all.filter(m=>!m.synced||Date.parse(m.local.replace(" ","T"))>cut));}
+  }catch(e){}
+  renderHeader();
+}
 
 /* =========================================================
    BILL
@@ -1066,8 +1135,8 @@ async function saveCfg(){
 }
 const cfgResultMsg=(r,what)=>r==="shared"?what+" saved for all phones":r==="local"?what+" saved on this phone":r==="older"?"Someone saved newer settings on another phone. Those are now loaded.":what+" saved here. They will reach other phones when this one is online.";
 
-window.addEventListener("online",()=>{syncPending();syncPunches();pullConfig();refreshMe();});
-setInterval(()=>{syncPending();syncPunches();},60000);
+window.addEventListener("online",()=>{syncPending();syncPunches();syncMeals();pullConfig();refreshMe();});
+setInterval(()=>{syncPending();syncPunches();syncMeals();},60000);
 setInterval(()=>{pullConfig();refreshMe();},5*60000);
 
 /* =========================================================
@@ -1075,14 +1144,15 @@ setInterval(()=>{pullConfig();refreshMe();},5*60000);
    ========================================================= */
 let sumDate=businessDate(new Date()),sumList=[],sumState="",sumErr="",sumSeq=0;
 function shiftDate(s,d){const [y,m,dd]=s.split("-").map(Number);return ymd(new Date(y,m-1,dd+d));}
-async function loadSummary(){
+async function loadSummary(quiet){
   const seq=++sumSeq;
+  if(!ownerView())sumDate=businessDate(new Date());     // workers: today only
   if(!local.sheetUrl){sumState="nosheet";sumList=bills.filter(b=>b.bdate===sumDate);renderSummary();return;}
   if(!navigator.onLine){sumState="offline";renderSummary();return;}
-  sumState="loading";renderSummary();
+  if(!quiet||!sumList.length){sumState="loading";renderSummary();}
   await syncPending();
   try{
-    const d=await sheetGet({action:"day",date:sumDate,device},25000);
+    const d=ownerPin?await sheetPost({action:"owner",op:"day",pin:ownerPin,date:sumDate},25000):await sheetGet({action:"day",date:sumDate,device},25000);
     if(seq!==sumSeq)return;
     if(!d.ok)throw new Error(d.error||"Sheet error");
     sumList=d.bills||[];sumState="ok";
@@ -1123,7 +1193,8 @@ const listBox=(rows)=>`<div class="list">${rows.join("")}</div>`;
 const liRow=(a,b)=>`<div class="li"><span>${a}</span><b>${b}</b></div>`;
 function renderSummary(){
   const today=businessDate(new Date()),pend=pendingCount();
-  let head=`<div class="datebar"><button id="dPrev" aria-label="Previous day">‹</button><b>${sumDate===today?"Today":fmtDate(sumDate)}</b><button id="dNext" aria-label="Next day" ${sumDate>=today?"disabled style='opacity:.3'":""}>›</button></div>`;
+  let head=ownerView()?`<div class="datebar"><button id="dPrev" aria-label="Previous day">‹</button><b>${sumDate===today?"Today":fmtDate(sumDate)}</b><button id="dNext" aria-label="Next day" ${sumDate>=today?"disabled style='opacity:.3'":""}>›</button></div>`
+    :`<div class="datebar"><b>Today · ${fmtDate(today)}</b></div>`;
   if(!storageOK)head+=`<div class="status bad">This device is not saving data. Open the app from the home screen icon, not from a file.</div>`;
   if(local.sheetUrl&&pend)head+=`<div class="status bad">${bl(pend)} from this device not uploaded yet${lastSyncError?" ("+esc(lastSyncError)+")":""}.<button class="act primary" id="syncNow">Send now</button></div>`;
   let body="";
@@ -1138,8 +1209,8 @@ function renderSummary(){
       <button class="act" id="restoreBtn">Restore from a backup file</button>
       <button class="act" id="settingsBtn">🔒 Owner</button>
     </div>`;
-  $("dPrev").onclick=()=>{sumDate=shiftDate(sumDate,-1);loadSummary();};
-  $("dNext").onclick=()=>{if(sumDate<today){sumDate=shiftDate(sumDate,1);loadSummary();}};
+  if($("dPrev"))$("dPrev").onclick=()=>{sumDate=shiftDate(sumDate,-1);sumList=[];loadSummary();};
+  if($("dNext"))$("dNext").onclick=()=>{if(sumDate<today){sumDate=shiftDate(sumDate,1);sumList=[];loadSummary();}};
   if($("syncNow"))$("syncNow").onclick=async()=>{toast("Sending…");await syncPending();toast(lastSyncError?"Not sent: "+lastSyncError:"Sent to Google Sheet");loadSummary();};
   if($("retrySum"))$("retrySum").onclick=loadSummary;
   if($("shareSum"))$("shareSum").onclick=()=>shareSummary(summarize(sumList));
@@ -1177,7 +1248,10 @@ function summaryBody(s){
     ${sumState==="ok"?`<p class="note" style="color:var(--muted);margin:10px 4px">Includes every bill uploaded by all devices. Before closing, open the app on each device with internet so its bills are included.</p>`:""}`;
 }
 $("sumBody").addEventListener("click",e=>{const r=e.target.closest("[data-bid]");if(!r)return;const b=sumList.find(x=>x.id===r.dataset.bid);if(b)openDetail(b);});
-$("sumBtn").addEventListener("click",()=>{sumDate=businessDate(new Date());openLayer("sumLayer");loadSummary();});
+function openSummary(date){sumDate=date||businessDate(new Date());sumList=[];S.set("reopen","sum");openLayer("sumLayer");loadSummary();}
+$("sumBtn").addEventListener("click",()=>openSummary());
+// keep the summary fresh while it's open
+setInterval(()=>{if(isOpen("sumLayer")&&!isOpen("detLayer")&&sumState!=="loading"&&document.visibilityState==="visible")loadSummary(true);},60000);
 
 function shareSummary(s){
   const sec=(title,rows,f)=>rows.length?`\n*${title}*\n`+rows.map(f).join("\n")+"\n":"";
@@ -1213,10 +1287,11 @@ function renderDetail(){
       <dt>Menu</dt><dd>${b.menu==="night"?"🌙 Night":"☀️ Evening"}</dd>
       <dt>Staff</dt><dd>${esc(b.staff||"–")}</dd>
       <dt>Payment</dt><dd>${esc(b.mode)}</dd>
-      <dt>Mobile</dt><dd>${maskMobile(b.mobile)}${b.visit?` · ${ordinal(+b.visit)} visit`:""}</dd>
+      <dt>Mobile</dt><dd>${b.mobile?(ownerView()&&/^\d{10}$/.test(b.mobile)?esc(b.mobile):maskMobile(b.mobile)):"–"}${b.visit?` · ${ordinal(+b.visit)} visit`:""}</dd>
     </dl>
     ${(b.lines||[]).map(l=>`<div class="line"><div class="ln"><span>${esc(l.n||l.item)}</span></div><div class="la">${rs(l.price*l.qty)}</div><div class="lp">${rs(l.price)} × ${l.qty}</div></div>`).join("")}
     <div class="grand"><span>Total</span><b>${rs(b.total)}</b></div></div>
+    ${b.mobile&&!voided?`<button class="wa-btn" id="detWa">Send this bill on WhatsApp</button>`:""}
     ${voided?"":`
       <button class="cancel-btn" id="voidOpen" style="margin-top:16px">Void this bill</button>
       <div class="card hidden" id="voidForm" style="margin-top:14px">
@@ -1225,10 +1300,22 @@ function renderDetail(){
         <div class="field"><label for="voidPin">Owner PIN</label><input id="voidPin" type="password" inputmode="numeric" maxlength="8" autocomplete="off"><div class="hint warn" id="voidHint"></div></div>
         <button class="m-yes danger" id="voidGo" style="width:100%;margin-top:6px">Void bill</button>
       </div>`}`;
+  if($("detWa"))$("detWa").onclick=shareOldBill;
   if(voided)return;
   $("voidOpen").onclick=()=>{$("voidForm").classList.remove("hidden");$("voidOpen").classList.add("hidden");};
   $("detBody").querySelectorAll("[data-r]").forEach(c=>c.onclick=()=>{voidReason=c.dataset.r;$("detBody").querySelectorAll("[data-r]").forEach(x=>x.classList.toggle("on",x===c));});
   $("voidGo").onclick=doVoid;
+}
+async function shareOldBill(){
+  const b=detBill,loc=bills.find(x=>x.id===b.id);
+  let num=/^\d{10}$/.test(b.mobile)?b.mobile:loc&&/^\d{10}$/.test(loc.mobile)?loc.mobile:"";
+  if(!num){
+    try{const d=await sheetGet({action:"billShare",id:b.id,date:b.bdate,device},10000);if(!d.ok)throw new Error(d.error);num=d.mobile;}
+    catch(e){toast(e.message||"Could not get the number",3000);return;}
+  }
+  const lines=(b.lines||[]).map(l=>({n:l.n||l.item,qty:l.qty,price:l.price}));
+  const txt=billText(lines,b.total,fmtDate(b.bdate)+", "+fmtClock(String(b.local)),false);
+  window.open("https://wa.me/91"+num+"?text="+encodeURIComponent(txt),"_blank");
 }
 async function doVoid(){
   const hint=$("voidHint"),btn=$("voidGo"),b=detBill;
@@ -1317,12 +1404,12 @@ function getPosition(){
 }
 function openAttendance(){renderAtt();loadMyData();}
 async function loadMyData(){
-  if(!local.sheetUrl||!navigator.onLine||me.status!=="worker"){att.loaded=true;renderAtt();return;}
+  if(!local.sheetUrl||!navigator.onLine||me.status!=="worker"){att.loaded=true;renderAtt();renderAdv();return;}
   try{
     const d=await sheetGet({action:"me",device},15000);
     if(d.ok){att.days=d.days||[];att.advances=d.advances||[];att.unsettled=d.unsettled||0;att.err="";}else att.err=d.error||"";
   }catch(e){att.err=e.message;}
-  att.loaded=true;renderAtt();
+  att.loaded=true;renderAtt();renderAdv();
 }
 // today's times: what the Sheet has, plus punches still waiting on this phone
 function todayFor(name){
@@ -1357,21 +1444,30 @@ function renderAtt(){
   }
   const pend=pendingPunches().length;
   if(pend)h+=`<div class="status bad">${pend} attendance entr${pend>1?"ies":"y"} waiting to upload.<button class="act primary" id="punchSync">Send now</button></div>`;
+  // every entry made on this phone for the current shift, with its upload status
+  const bd=businessDate(new Date()),here=S.get("punches",[]).filter(p=>p.bdate===bd).reverse();
+  if(here.length)h+=`<div class="sec">Entries from this phone today</div>`+listBox(here.map(p=>`<div class="li"><span>${fmtClock(p.time)} · ${esc(p.worker)} · ${p.type==="IN"?"In":"Out"}</span><span class="r">${p.rejected?`<span class="flag">✗ Not accepted</span>`:p.synced?'<span class="flag ok">✓ Saved</span>':'<span class="flag info">⏳ Waiting</span>'}</span></div>`));
   if(mine){
     h+=`<div class="sec">My times</div>`+(!att.loaded?`<div class="loading">Loading…</div>`:att.days.length
       ?listBox(att.days.map(d=>`<div class="li"><span>${esc(fmtDate(d.date))}</span><span class="r">${d.inT?"In "+fmtClock(d.inT):"–"}${d.outT?" · Out "+fmtClock(d.outT):""}</span></div>`))
       :`<div class="list"><div class="empty">No entries yet</div></div>`);
-    h+=`<div class="sec">My advances</div>
-      <div class="stat wide" style="margin-bottom:10px"><div class="k">Taken and not yet settled</div><div class="v">${rs(att.unsettled)}</div></div>
-      ${att.advances.length?listBox(att.advances.map(a=>`<div class="li"><span>${esc(fmtDate(a.date))} <span class="m">${a.by==="Owner"?"added by owner":""}${a.note?" · "+esc(a.note):""}</span></span><b>${rs(a.amount)}</b></div>`)):""}
-      <button class="act" id="addAdv" style="width:100%;margin-top:10px">+ Record an advance I took</button>`;
     if(att.err)h+=`<div class="status bad">${esc(att.err)}</div>`;
   }
   v.innerHTML=h;
   const pb=v.querySelector("[data-punch]");if(pb)pb.onclick=()=>doPunch(pb.dataset.punch,me.name);
   if($("forOther"))$("forOther").onclick=punchForOther;
   if($("punchSync"))$("punchSync").onclick=async()=>{toast("Sending…");await syncPunches();};
-  if($("addAdv"))$("addAdv").onclick=workerAdvanceForm;
+}
+/* my advances: its own section, for every linked worker */
+function openAdvances(){renderAdv();loadMyData();}
+function renderAdv(){
+  const v=$("advView");
+  if(me.status!=="worker"){v.innerHTML=`<div class="status bad">Advances are shown on a phone linked to a worker.</div>`;return;}
+  v.innerHTML=`<div class="stat wide" style="margin-bottom:12px"><div class="k">💵 Advances taken and not yet settled</div><div class="v">${rs(att.unsettled)}</div><div class="s">${esc(me.name)}</div></div>
+    ${!att.loaded?`<div class="loading">Loading…</div>`:att.advances.length?listBox(att.advances.map(a=>`<div class="li"><span>${esc(fmtDate(a.date))} <span class="m">${a.by==="Owner"?"added by owner":""}${a.note?" · "+esc(a.note):""}</span></span><b>${rs(a.amount)}</b></div>`)):`<div class="list"><div class="empty">No advances</div></div>`}
+    <button class="big-btn" id="addAdv" style="margin-top:14px">+ Record an advance I took</button>
+    ${att.err?`<div class="status bad">${esc(att.err)}</div>`:""}`;
+  $("addAdv").onclick=workerAdvanceForm;
 }
 async function punchForOther(){
   const names=cfg.staff.filter(n=>!(me.status==="worker"&&n===me.name));
@@ -1405,9 +1501,11 @@ async function doPunchSync(){
   const all=S.get("punches",[]),pend=all.filter(p=>!p.synced);if(!pend.length)return;
   try{
     const sentAt=localStamp(new Date());
-    const d=await sheetPost({action:"punch",punches:pend.map(p=>Object.assign({},p,{sentAt}))});
+    const d=await sheetPost({action:"punch",punches:pend.map(p=>{const q=Object.assign({},p,{sentAt});delete q.synced;delete q.rejected;return q;})});
     if(d.ok){
-      const ok=new Set(d.saved||[]);all.forEach(p=>{if(ok.has(p.id))p.synced=true;});
+      const ok=new Set(d.saved||[]),bad={};(d.rejected||[]).forEach(x=>{bad[x.id]=x.reason;});
+      all.forEach(p=>{if(ok.has(p.id))p.synced=true;if(bad[p.id]){p.rejected=bad[p.id];
+        attMsg={cls:"warn",text:`${p.type==="IN"?"Check-in":"Check-out"} at ${fmtClock(p.time)} for ${p.worker} was not accepted: ${bad[p.id]}. Tell the owner.`};}});
       const cut=Date.now()-40*864e5;
       S.set("punches",all.filter(p=>!p.synced||Date.parse(p.time.replace(" ","T"))>cut));
     }
@@ -1433,7 +1531,9 @@ function workerAdvanceForm(){
     try{
       const d=await sheetPost({action:"advance",device,amount:amt,note:$("advNote").value.trim(),id:"A"+device+Date.now()});
       if(!d.ok)throw new Error(d.error);
-      closeLayer();toast("Advance of "+rs(amt)+" recorded");loadMyData();
+      closeLayer();toast("Advance of "+rs(amt)+" recorded");
+      att.advances.unshift({date:ymd(new Date()),amount:amt,note:$("advNote").value.trim(),by:"Worker"});att.unsettled+=amt;renderAdv();
+      loadMyData();
     }catch(e){$("advHint").textContent=e.message||"Could not save";$("advSave").disabled=false;}
   };
 }
@@ -1534,8 +1634,26 @@ function showStockWeek(){
 /* =========================================================
    OWNER AREA  (PIN checked by the Google Sheet; nothing private is stored on phones)
    ========================================================= */
-let own={profiles:{v:0,list:[]},ownerDevices:[],locks:[],payrollStart:"",unknown:[]},ownTab="staff";
-const OWN_TABS=[["staff","👥 Staff"],["attendance","🕒 Attendance"],["advances","💵 Advances"],["payroll","🧮 Salary"],["stocklist","📦 Stock list"],["settings","⚙ Settings"]];
+let own={profiles:{v:0,list:[]},ownerDevices:[],locks:[],payrollStart:"",unknown:[]},ownTab="sales",ownCache={};
+const OWN_TABS=[["sales","📊 Sales"],["staff","👥 Staff"],["attendance","🕒 Attendance"],["advances","💵 Advances"],["payroll","🧮 Salary"],["meals","🍽 Meals"],["stocklist","📦 Stock list"],["settings","⚙ Settings"]];
+/* Instant screens: show what was loaded last time straight away, refresh quietly in the background. */
+let syncJobs=0;
+function setSync(d){syncJobs=Math.max(0,syncJobs+d);$("ownSync").classList.toggle("hidden",!syncJobs);}
+async function cached(key,fetcher,draw,retry){
+  const tab=ownTab,still=()=>ownTab===tab&&isOpen("ownLayer");
+  if(ownCache[key])draw(ownCache[key]);else ownBusy();
+  setSync(1);
+  try{const d=await fetcher();ownCache[key]=d;if(still())draw(d);}
+  catch(e){if(!still())return;if(!ownCache[key])ownErr(e,retry);else toast("Couldn't refresh: "+e.message,3000);}
+  finally{setSync(-1);}
+}
+/* Changes show at once; the save runs in the background and is undone with a message if it fails. */
+function bgSave(job,undo,after){
+  setSync(1);
+  job().then(()=>{if(after)after();}).catch(e=>{if(undo)undo();toast("Not saved: "+(e.message||"no connection")+". Change undone.",4500);})
+    .finally(()=>setSync(-1));
+}
+const dropCache=prefix=>Object.keys(ownCache).forEach(k=>{if(k.indexOf(prefix)===0)delete ownCache[k];});
 const clone=o=>JSON.parse(JSON.stringify(o));
 const monthName=m=>{const [y,mo]=m.split("-").map(Number);return new Date(y,mo-1,1).toLocaleDateString("en-IN",{month:"long",year:"numeric"});};
 const shiftMonth=(m,n)=>{let [y,mo]=m.split("-").map(Number);mo+=n;while(mo<1){mo+=12;y--;}while(mo>12){mo-=12;y++;}return y+"-"+pad(mo);};
@@ -1570,13 +1688,15 @@ function openOwner(){
 async function loadOwner(){
   const d=await ownerCall("login");
   own={profiles:d.profiles||{v:0,list:[]},ownerDevices:d.ownerDevices||[],locks:d.locks||[],payrollStart:d.payrollStart||"",unknown:d.unknown||[]};
+  scriptVersion=Number(d.version)||4;S.set("scriptVersion",scriptVersion);
 }
 function renderOwner(){
   const tabs=local.sheetUrl?OWN_TABS:OWN_TABS.filter(t=>t[0]==="settings"||t[0]==="stocklist");
   if(!tabs.some(t=>t[0]===ownTab))ownTab=tabs[0][0];
   $("ownTabs").innerHTML=tabs.map(t=>`<button class="tab${t[0]===ownTab?" on":""}" data-ot="${t[0]}">${t[1]}</button>`).join("");
   $("ownTabs").classList.remove("hidden");
-  ({staff:renderStaffTab,attendance:renderAttTab,advances:renderAdvTab,payroll:renderPayTab,stocklist:renderStockListTab,settings:renderSettingsTab})[ownTab]();
+  if(local.sheetUrl&&scriptVersion<NEED_SCRIPT&&ownTab!=="settings"){$("ownBody").innerHTML=`<div class="status bad">⚠️ The Google Sheet script is out of date (version ${scriptVersion}; this app needs ${NEED_SCRIPT}). In the Sheet: Extensions → Apps Script → paste the new Code.gs (keep your SECRET) → Save → Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy. Then close and reopen 🔒.</div>`;return;}
+  return ({sales:renderSalesTab,meals:renderMealsTab,staff:renderStaffTab,attendance:renderAttTab,advances:renderAdvTab,payroll:renderPayTab,stocklist:renderStockListTab,settings:renderSettingsTab})[ownTab]();
 }
 $("ownTabs").addEventListener("click",e=>{const b=e.target.closest("[data-ot]");if(!b)return;ownTab=b.dataset.ot;renderOwner();$("ownBody").scrollTop=0;});
 $("ownBtn").addEventListener("click",openOwner);
@@ -1597,7 +1717,12 @@ function renderStaffTab(){
   $("ownBody").querySelectorAll("[data-link]").forEach(b=>b.onclick=()=>linkPhone(b.dataset.link));
   $("addWorker").onclick=()=>editProfile(-1);
 }
-async function saveProfiles(list){await ownerCall("saveProfiles",{list});await loadOwner();await pullConfig();refreshMe();}
+async function saveProfiles(list){await ownerCall("saveProfiles",{list});await loadOwner();await pullConfig();refreshMe();dropCache("pay:");dropCache("adv");}
+function saveProfilesBg(list,msg){
+  const prev=own.profiles;own.profiles={v:Date.now(),list};
+  if(ownTab==="staff")renderStaffTab();toast(msg);
+  bgSave(()=>saveProfiles(list),()=>{own.profiles=prev;if(ownTab==="staff"&&isOpen("ownLayer"))renderStaffTab();},()=>{if(ownTab==="staff"&&isOpen("ownLayer"))renderStaffTab();});
+}
 async function linkPhone(code){
   if(!own.profiles.list.length){toast("Add the worker first");return;}
   const name=await pickName("Link phone "+code+" to…",own.profiles.list.map(p=>p.name),"");
@@ -1605,8 +1730,7 @@ async function linkPhone(code){
   const list=clone(own.profiles.list);
   list.forEach(x=>{x.devices=(x.devices||[]).filter(c=>c!==code);});
   list.find(x=>x.name===name).devices.push(code);
-  ownBusy("Saving…");
-  try{await saveProfiles(list);toast("Phone "+code+" linked to "+name);renderOwner();}catch(e){ownErr(e,renderOwner);}
+  saveProfilesBg(list,"Phone "+code+" linked to "+name);
 }
 let pDraft=null,pIndex=-1;
 function editProfile(i){
@@ -1621,6 +1745,7 @@ function readProfileForm(){
   const p=pDraft;
   p.name=$("pfName").value.trim().replace(/\s+/g," ");
   p.salary=parseInt(($("pfSalary").value||"").replace(/\D/g,""),10)||0;
+  p.mobile=($("pfMob").value||"").replace(/\D/g,"").slice(-10);
   p.slabs=[...$("pfSlabs").querySelectorAll(".row2")].map(r=>[parseInt(r.querySelector("[data-sa]").value.replace(/\D/g,""),10)||0,parseInt(r.querySelector("[data-sb]").value.replace(/\D/g,""),10)||0]);
   p.access={billing:$("pfB").checked,attendance:$("pfA").checked,stock:$("pfS").checked};
   p.joined=$("pfJoin").value;p.left=$("pfLeft").value;p.active=$("pfActive").checked;
@@ -1634,6 +1759,7 @@ function renderProfileForm(){
       <div class="row2" style="grid-template-columns:1fr auto"><input id="pfCode" maxlength="3" placeholder="Code, e.g. K7Q" autocapitalize="characters"><button class="chip" id="pfAddCode">Add</button></div>
       <button class="act" id="pfThis" style="width:100%">+ Add this phone (${device})</button>
       <div class="note">A worker can read their phone's code on the red banner at the top of the app.</div></div>
+    <div class="field"><label for="pfMob">WhatsApp number</label><input id="pfMob" type="tel" inputmode="numeric" maxlength="10" value="${esc(p.mobile||"")}"><div class="note">Salary slips are sent here.</div></div>
     <div class="field"><label for="pfSalary">Monthly salary (₹)</label><input id="pfSalary" inputmode="numeric" value="${p.salary||""}"></div>
     <div class="field"><label>Daily sales incentive</label>
       <div class="note" style="margin:0 0 8px">When the shop's sales for the day reach the amount, the worker gets the incentive, if present that day. Only the highest slab reached is paid.</div>
@@ -1668,19 +1794,60 @@ function renderProfileForm(){
     // a phone belongs to one worker only
     list.forEach((x,i)=>{if(i!==pIndex)x.devices=(x.devices||[]).filter(c=>p.devices.indexOf(c)<0);});
     if(pIndex>=0)list[pIndex]=p;else list.push(p);
-    $("pfSave").disabled=true;$("pfSave").textContent="Saving…";
-    try{await saveProfiles(list);closeLayer();toast(p.name+" saved");renderOwner();}
-    catch(e){$("pfHint").textContent=e.message;$("pfSave").disabled=false;$("pfSave").textContent="Save worker";}
+    if(p.mobile&&!/^[6-9]\d{9}$/.test(p.mobile)){$("pfHint").textContent="Check the WhatsApp number (10 digits)";return;}
+    closeLayer();saveProfilesBg(list,p.name+" saved");
   };
   if($("pfDel"))$("pfDel").onclick=async()=>{
     if(!await ask({title:"Remove "+p.name+"?",text:"To keep their salary history for unpaid months, set a last working day and untick Active instead. Removing takes them out of salary calculations.",yes:"Remove",no:"Keep",danger:true}))return;
     const list=clone(own.profiles.list);list.splice(pIndex,1);
-    try{await saveProfiles(list);closeLayer();toast("Removed");renderOwner();}catch(e){$("pfHint").textContent=e.message;}
+    closeLayer();saveProfilesBg(list,p.name+" removed");
   };
 }
 
-/* ---------- Attendance review ---------- */
-let attDate="",attDay=null;
+/* ---------- 📊 Sales calendar ---------- */
+let calMonth="";
+function renderSalesTab(){
+  if(!calMonth)calMonth=ymd(new Date()).slice(0,7);
+  const m=calMonth;
+  return cached("cal:"+m,()=>ownerCall("calendar",{month:m}),drawSales,renderSalesTab);
+}
+function drawSales(d){
+  const cur=ymd(new Date()).slice(0,7),past=d.days.filter(x=>x.date<=d.today);
+  const fin=x=>x.actual===null?x.billed:x.actual;
+  const soFar=past.reduce((a,x)=>a+fin(x),0),billed=past.reduce((a,x)=>a+x.billed,0);
+  const dl=s=>{const x=new Date(s+"T12:00:00");return x.toLocaleDateString("en-IN",{weekday:"short"})+" "+x.getDate();};
+  $("ownBody").innerHTML=`<div class="datebar"><button id="cPrev" aria-label="Previous month">‹</button><b>${esc(monthName(d.month))}</b><button id="cNext" aria-label="Next month" ${d.month>=cur?"disabled style='opacity:.3'":""}>›</button></div>
+    <div class="stat wide" style="margin-bottom:10px"><div class="k">Sales so far</div><div class="v">${rs(soFar)}</div><div class="s">Billed in app ${rs(billed)}${soFar!==billed?` · difference ${soFar>billed?"+":"−"}${rs(Math.abs(soFar-billed))}`:""}</div></div>
+    <button class="act" id="cToday" style="width:100%;margin-bottom:10px">Open today's full summary</button>
+    <div class="list">${past.slice().reverse().map(x=>`<button class="li cal" data-cd="${x.date}"><span><b>${dl(x.date)}</b></span>
+      <span class="amts">${x.actual===null?`<b>${rs(x.billed)}</b> <span class="m">billed</span>`:`<b>${rs(x.actual)}</b> <span class="m">actual ✎</span><br><span class="m">billed ${rs(x.billed)} · ${x.actual>=x.billed?"+":"−"}${rs(Math.abs(x.actual-x.billed))}</span>`}</span></button>`).join("")||'<div class="empty">No days yet</div>'}</div>
+    <p class="note" style="color:var(--muted)">Tap a day to enter actual sales. Without an actual figure, billed sales count as final. Incentives use the final figure.</p>`;
+  $("cPrev").onclick=()=>{calMonth=shiftMonth(calMonth,-1);renderSalesTab();};
+  $("cNext").onclick=()=>{if(calMonth<cur){calMonth=shiftMonth(calMonth,1);renderSalesTab();}};
+  $("cToday").onclick=()=>openSummary();
+  $("ownBody").querySelectorAll("[data-cd]").forEach(b=>b.onclick=()=>editActual(d,b.dataset.cd));
+}
+function editActual(d,date){
+  const x=d.days.find(y=>y.date===date);
+  $("formTitle").textContent=fmtDate(date);$("formFoot").classList.add("hidden");
+  $("formBody").innerHTML=`<div class="form">
+    <div class="stat wide"><div class="k">Billed in the app</div><div class="v">${rs(x.billed)}</div></div>
+    <div class="field"><label for="actIn">Actual sales (₹)</label><input id="actIn" inputmode="numeric" maxlength="8" value="${x.actual===null?"":x.actual}" placeholder="Leave empty to use billed"></div>
+    <button class="big-btn" id="actSave">Save</button>
+    ${x.actual!==null?`<button class="act" id="actClear">Clear (use billed)</button>`:""}
+    <button class="act" id="actDay">Open this day's full summary</button></div>`;
+  openLayer("formLayer");
+  const put=v=>{
+    const prev=x.actual;x.actual=v;drawSales(d);closeLayer();dropCache("pay:");dropCache("adv");
+    bgSave(()=>ownerCall("setActual",{date,amount:v}),()=>{x.actual=prev;if(ownTab==="sales")drawSales(d);});
+  };
+  $("actSave").onclick=()=>{const t=$("actIn").value.replace(/\D/g,"");put(t===""?null:+t);};
+  if($("actClear"))$("actClear").onclick=()=>put(null);
+  $("actDay").onclick=()=>{closeLayer();setTimeout(()=>openSummary(date),50);};
+}
+
+/* ---------- 🕒 Attendance review ---------- */
+let attDate="";
 function flagChips(r,isToday){
   const f=r.flags||{},o=[];
   o.push(r.present?'<span class="flag ok">Present</span>':`<span class="flag">${isToday?"Not in yet":"Absent"}</span>`);
@@ -1690,74 +1857,95 @@ function flagChips(r,isToday){
   if(f.unregistered)o.push('<span class="flag">⚠ Unregistered phone</span>');
   if(f.clock)o.push(`<span class="flag">⚠ ${esc(f.clock)}</span>`);
   if(f.edited)o.push(`<span class="flag info">✎ ${esc(f.edited)}</span>`);
+  if(r.saving)o.push('<span class="flag info">⟳ saving</span>');
   return o.join("");
 }
-async function renderAttTab(){
+function renderAttTab(){
   if(!attDate)attDate=businessDate(new Date());
-  ownBusy();
-  try{attDay=await ownerCall("attendanceDay",{date:attDate});}catch(e){return ownErr(e,renderAttTab);}
-  if(ownTab!=="attendance")return;
+  const day=attDate;
+  return cached("att:"+day,()=>ownerCall("attendanceDay",{date:day}),drawAttTab,renderAttTab);
+}
+function drawAttTab(attDay){
   const today=businessDate(new Date()),isToday=attDate===today;
   $("ownBody").innerHTML=`<div class="datebar"><button id="aPrev" aria-label="Previous day">‹</button><b>${isToday?"Today":esc(fmtDate(attDate))}</b><button id="aNext" aria-label="Next day" ${attDate>=today?"disabled style='opacity:.3'":""}>›</button></div>
-    <p class="note" style="color:var(--muted);margin:0 4px 10px">Shift of ${esc(fmtDate(attDate))}, ${esc(cfg.shiftStart)} onwards. Tap a worker to correct the day.</p>
+    <p class="note" style="color:var(--muted);margin:0 4px 10px">Shift of ${esc(fmtDate(attDate))}, from ${esc(cfg.shiftStart)}. Tap a worker to correct the day.</p>
     ${attDay.rows.map((r,i)=>`<button class="wcard" data-ar="${i}"><div class="top"><span>${esc(r.worker)}</span><span>${r.inT?fmtClock(r.inT):"–"} → ${r.outT?fmtClock(r.outT):"–"}</span></div>
       <div class="meta">${r.late?`Late ${r.late} min · `:""}${r.early?`Left early ${r.early} min · `:""}${flagChips(r,isToday)}</div></button>`).join("")||'<div class="list"><div class="empty">No workers yet</div></div>'}
     <div class="sec">Every entry this day</div>
     ${attDay.punches.length?`<div class="scroll-x"><table class="tbl"><tr><th>Time</th><th>Worker</th><th></th><th>Phone</th><th class="num">Distance</th></tr>${attDay.punches.map(p=>`<tr><td>${fmtClock(p.time)}</td><td>${esc(p.worker)}</td><td>${p.type==="IN"?"In":"Out"}</td><td>${esc(p.phone)} <span class="m">${esc(p.phoneOf)}</span>${p.other?' <span class="flag">⚠</span>':""}${p.check?` <span class="flag">${esc(p.check)}</span>`:""}</td><td class="num">${p.dist===""?"":esc(p.dist)+" m"}</td></tr>`).join("")}</table></div>`:'<div class="list"><div class="empty">No entries</div></div>'}`;
   $("aPrev").onclick=()=>{attDate=shiftDate(attDate,-1);renderAttTab();};
   $("aNext").onclick=()=>{if(attDate<today){attDate=shiftDate(attDate,1);renderAttTab();}};
-  $("ownBody").querySelectorAll("[data-ar]").forEach(b=>b.onclick=()=>editAttendance(attDay.rows[+b.dataset.ar]));
+  $("ownBody").querySelectorAll("[data-ar]").forEach(b=>b.onclick=()=>editAttendance(attDay,attDay.rows[+b.dataset.ar]));
 }
-function editAttendance(r){
-  const hhmm=t=>t?t.slice(11,16):"";
-  $("formTitle").textContent=r.worker+" · "+fmtDate(attDate);$("formFoot").classList.add("hidden");
+function editAttendance(attDay,r){
+  const hhmm=t=>t?t.slice(11,16):"",date=attDate;
+  const modeSel=(id,label,val)=>`<div class="field"><label for="${id}M">${label}</label>
+    <select id="${id}M"><option value="auto">As punched</option><option value="set">Set time</option><option value="none">None (clear it)</option></select>
+    <input id="${id}T" type="time" value="${val}" style="margin-top:8px"></div>`;
+  $("formTitle").textContent=r.worker+" · "+fmtDate(date);$("formFoot").classList.add("hidden");
   $("formBody").innerHTML=`<div class="form">
     <div class="field"><label for="eSt">Day counts as</label><select id="eSt"><option value="">From check-in (automatic)</option><option value="Present">Present</option><option value="Absent">Absent</option></select></div>
-    <div class="field"><label for="eIn">Check-in time</label><input id="eIn" type="time" value="${hhmm(r.inT)}"></div>
-    <div class="field"><label for="eOut">Check-out time</label><input id="eOut" type="time" value="${hhmm(r.outT)}"><div class="note">Times before 12 noon count as the next morning.</div></div>
+    ${modeSel("eIn","Check-in",hhmm(r.inT))}
+    ${modeSel("eOut","Check-out",hhmm(r.outT))}
+    <div class="note">Times before 12 noon count as the next morning. "None" clears a time, for example a test entry.</div>
     <div class="field"><label for="eWhy">Reason</label><input id="eWhy" maxlength="80" placeholder="e.g. forgot to check out"></div>
     <div class="hint warn" id="eHint"></div>
     <button class="big-btn" id="eSave">Save correction</button>
-    <p class="note" style="color:var(--muted)">Corrections are logged in the Sheet's "Attendance edits" tab. The latest one for a day wins.</p></div>`;
-  if(r.flags&&r.flags.edited&&!r.inT&&!r.present)$("eSt").value="Absent";
+    <p class="note" style="color:var(--muted)">The worker's own entries stay in the Sheet; your correction is logged in "Attendance edits" and the latest one wins.</p></div>`;
+  const sync=id=>{$(id+"T").classList.toggle("hidden",$(id+"M").value!=="set");};
+  ["eIn","eOut"].forEach(id=>{$(id+"M").onchange=()=>sync(id);sync(id);});
   openLayer("formLayer");
-  $("eSave").onclick=async()=>{
+  $("eSave").onclick=()=>{
     const why=$("eWhy").value.trim();if(!why){$("eHint").textContent="Add a short reason";return;}
-    $("eSave").disabled=true;
-    try{await ownerCall("edit",{date:attDate,worker:r.worker,status:$("eSt").value,inT:$("eIn").value,outT:$("eOut").value,reason:why});
-      closeLayer();toast("Correction saved");renderAttTab();}
-    catch(e){$("eHint").textContent=e.message;$("eSave").disabled=false;}
+    const val=id=>{const m=$(id+"M").value;if(m==="none")return "NONE";if(m==="set"){return $(id+"T").value||null;}return "";};
+    const inT=val("eIn"),outT=val("eOut");
+    if(inT===null||outT===null){$("eHint").textContent="Enter the time, or choose another option";return;}
+    // show it straight away; the exact late/early minutes arrive after the save
+    const prev=JSON.stringify(r);
+    if($("eSt").value==="Absent"||inT==="NONE"&&$("eSt").value!=="Present"){r.present=false;r.inT="";}
+    else if($("eSt").value==="Present")r.present=true;
+    if(inT&&inT!=="NONE"){r.inT=date+" "+inT;r.present=$("eSt").value!=="Absent";}
+    if(outT==="NONE")r.outT="";else if(outT){r.outT=(outT<"12:00"?shiftDate(date,1):date)+" "+outT;}
+    r.flags=Object.assign({},r.flags,{edited:why});r.saving=true;
+    closeLayer();if(ownTab==="attendance")drawAttTab(attDay);
+    bgSave(()=>ownerCall("edit",{date,worker:r.worker,status:$("eSt").value,inT,outT,reason:why}),
+      ()=>{Object.assign(r,JSON.parse(prev));delete r.saving;if(ownTab==="attendance")drawAttTab(attDay);},
+      ()=>{dropCache("pay:");dropCache("adv");if(ownTab==="attendance"&&attDate===date)renderAttTab();});
+
   };
 }
 
-/* ---------- Advances ---------- */
-async function renderAdvTab(){
-  ownBusy();
-  let a,e;
-  try{a=await ownerCall("advances");e=await ownerCall("earnedSoFar",{},60000);}catch(err){return ownErr(err,renderAdvTab);}
-  if(ownTab!=="advances")return;
-  const locked=a.locks||[],active=a.list.filter(x=>x.status!=="Cancelled");
+/* ---------- 💵 Advances ---------- */
+function renderAdvTab(){
+  return cached("adv",async()=>({a:await ownerCall("advances"),e:await ownerCall("earnedSoFar",{},60000)}),drawAdvTab,renderAdvTab);
+}
+function drawAdvTab(c){
+  const a=c.a,e=c.e,locked=a.locks||[],active=a.list.filter(x=>x.status!=="Cancelled");
   const names=own.profiles.list.map(p=>p.name);
   const card=n=>{const open=active.filter(x=>x.worker===n&&locked.indexOf(x.month)<0).reduce((s,x)=>s+x.amount,0),w=e.workers[n]||{earned:0};
     const left=w.earned-open;
     return `<div class="wcard"><div class="top"><span>${esc(n)}</span><span style="color:${left<0?"#C62828":"inherit"}">${left<0?"Over by "+rs(-left):"Room "+rs(left)}</span></div>
       <div class="meta">Advances not yet settled ${rs(open)} · earned so far ${rs(w.earned)}</div></div>`;};
-  $("ownBody").innerHTML=`<p class="note" style="color:var(--muted);margin:0 4px 10px">"Earned so far" is pay for days already worked in ${e.months.map(monthName).join(" and ")} (not yet paid), before advances.</p>
+  $("ownBody").innerHTML=`<p class="note" style="color:var(--muted);margin:0 4px 10px">"Earned so far" is pay for days already worked in ${e.months.map(monthName).join(" and ")}, not yet paid, before advances.</p>
     ${names.map(card).join("")||'<div class="list"><div class="empty">No workers yet</div></div>'}
     <button class="big-btn" id="advAdd" style="margin:6px 0 4px">+ Add advance</button>
     <div class="sec">All advances</div>
     ${a.list.length?a.list.map(x=>`<div class="wcard" style="${x.status==="Cancelled"?"opacity:.55":""}"><div class="top"><span>${esc(x.worker)} · ${rs(x.amount)}</span><span class="m">${esc(fmtDate(x.date))}</span></div>
       <div class="meta">${x.by==="Owner"?"Added by you":"Added by worker"}${x.note?" · "+esc(x.note):""} · settles in ${esc(monthName(x.month))}${locked.indexOf(x.month)>=0?" (paid)":""}${x.status==="Cancelled"?" · CANCELLED":""}</div>
-      ${x.status!=="Cancelled"?`<div class="chips" style="margin:8px 0 0"><button class="chip${x.reviewed?" on":""}" data-rev="${esc(x.id)}" data-v="${x.reviewed?0:1}">${x.reviewed?"✓ Reviewed":"Mark reviewed"}</button>${locked.indexOf(x.month)<0?`<button class="chip" data-can="${esc(x.id)}">Cancel</button>`:""}</div>`:""}</div>`).join("")
+      ${x.status!=="Cancelled"?`<div class="chips" style="margin:8px 0 0"><button class="chip${x.reviewed?" on":""}" data-rev="${esc(x.id)}">${x.reviewed?"✓ Reviewed":"Mark reviewed"}</button>${locked.indexOf(x.month)<0?`<button class="chip" data-can="${esc(x.id)}">Cancel</button>`:""}</div>`:""}</div>`).join("")
       :'<div class="list"><div class="empty">No advances yet</div></div>'}`;
-  $("advAdd").onclick=ownerAdvanceForm;
-  $("ownBody").querySelectorAll("[data-rev]").forEach(b=>b.onclick=async()=>{b.disabled=true;try{await ownerCall("advanceUpdate",{id:b.dataset.rev,reviewed:b.dataset.v==="1"});renderAdvTab();}catch(err){toast(err.message);b.disabled=false;}});
+  $("advAdd").onclick=()=>ownerAdvanceForm(c);
+  $("ownBody").querySelectorAll("[data-rev]").forEach(b=>b.onclick=()=>{
+    const x=a.list.find(y=>y.id===b.dataset.rev);x.reviewed=!x.reviewed;drawAdvTab(c);
+    bgSave(()=>ownerCall("advanceUpdate",{id:x.id,reviewed:x.reviewed}),()=>{x.reviewed=!x.reviewed;if(ownTab==="advances")drawAdvTab(c);});
+  });
   $("ownBody").querySelectorAll("[data-can]").forEach(b=>b.onclick=async()=>{
     if(!await ask({title:"Cancel this advance?",text:"It won't be deducted. The entry stays in the Sheet marked Cancelled.",yes:"Cancel advance",no:"Keep",danger:true}))return;
-    try{await ownerCall("advanceUpdate",{id:b.dataset.can,cancel:true});toast("Advance cancelled");renderAdvTab();}catch(err){toast(err.message);}
+    const x=a.list.find(y=>y.id===b.dataset.can);x.status="Cancelled";drawAdvTab(c);dropCache("pay:");
+    bgSave(()=>ownerCall("advanceUpdate",{id:x.id,cancel:true}),()=>{x.status="Active";if(ownTab==="advances")drawAdvTab(c);});
   });
 }
-function ownerAdvanceForm(){
+function ownerAdvanceForm(c){
   const names=own.profiles.list.filter(p=>p.active!==false).map(p=>p.name);
   if(!names.length){toast("Add workers first");return;}
   $("formTitle").textContent="Add advance";$("formFoot").classList.add("hidden");
@@ -1768,65 +1956,133 @@ function ownerAdvanceForm(){
     <div class="note">Today's date is saved. It settles in the oldest month not yet marked paid.</div>
     <div class="hint warn" id="oaHint"></div><button class="big-btn" id="oaSave">Save advance</button></div>`;
   openLayer("formLayer");
-  $("oaSave").onclick=async()=>{
+  $("oaSave").onclick=()=>{
     const amt=parseInt($("oaAmt").value.replace(/\D/g,""),10);if(!(amt>0)){$("oaHint").textContent="Enter the amount";return;}
-    $("oaSave").disabled=true;
-    try{await ownerCall("addAdvance",{worker:$("oaW").value,amount:amt,note:$("oaNote").value.trim(),id:"A"+device+Date.now(),device});
-      closeLayer();toast("Advance saved");renderAdvTab();}
-    catch(e){$("oaHint").textContent=e.message;$("oaSave").disabled=false;}
+    const x={id:"A"+device+Date.now(),date:ymd(new Date()),worker:$("oaW").value,amount:amt,by:"Owner",note:$("oaNote").value.trim(),
+      month:defaultPayMonth(),status:"Active",reviewed:false};
+    if(c){c.a.list.unshift(x);if(ownTab==="advances")drawAdvTab(c);}
+    closeLayer();toast("Advance saved");dropCache("pay:");
+    bgSave(()=>ownerCall("addAdvance",{worker:x.worker,amount:amt,note:x.note,id:x.id,device}),
+      ()=>{if(c){c.a.list=c.a.list.filter(y=>y.id!==x.id);if(ownTab==="advances")drawAdvTab(c);}},
+      ()=>{delete ownCache.adv;if(ownTab==="advances"&&isOpen("ownLayer"))renderAdvTab();});
   };
 }
 
-/* ---------- Salary ---------- */
-let payMonth="",payData=null;
+/* ---------- 🧮 Salary and salary slips ---------- */
+let payMonth="";
 function defaultPayMonth(){
   const cur=ymd(new Date()).slice(0,7),prev=shiftMonth(cur,-1);
   return (prev>=(own.payrollStart||cur)&&own.locks.indexOf(prev)<0)?prev:cur;
 }
-async function renderPayTab(){
+function renderPayTab(){
   if(!payMonth)payMonth=defaultPayMonth();
-  ownBusy("Calculating salaries…");
-  try{payData=await ownerCall("payroll",{month:payMonth},90000);}catch(e){return ownErr(e,renderPayTab);}
-  if(ownTab!=="payroll")return;
-  const d=payData,cur=ymd(new Date()).slice(0,7);
+  const m=payMonth;
+  return cached("pay:"+m,()=>ownerCall("payroll",{month:m},90000),drawPayTab,renderPayTab);
+}
+function drawPayTab(d){
+  const cur=ymd(new Date()).slice(0,7);
   const status=d.locked?'<div class="status">✓ Marked paid. These figures are locked.</div>':d.complete?'<div class="status">Month complete. Check the figures, pay on the 7th, then mark it paid.</div>':'<div class="status">Month in progress: figures so far, based on days already worked.</div>';
-  $("ownBody").innerHTML=`<div class="datebar"><button id="mPrev" aria-label="Previous month">‹</button><b>${esc(monthName(payMonth))}</b><button id="mNext" aria-label="Next month" ${payMonth>=cur?"disabled style='opacity:.3'":""}>›</button></div>
+  $("ownBody").innerHTML=`<div class="datebar"><button id="mPrev" aria-label="Previous month">‹</button><b>${esc(monthName(d.month))}</b><button id="mNext" aria-label="Next month" ${d.month>=cur?"disabled style='opacity:.3'":""}>›</button></div>
     ${status}
-    ${d.rows.map((r,i)=>`<button class="wcard" data-pr="${i}"><div class="top"><span>${esc(r.worker)}</span><span class="big-num" style="font-size:22px;${r.net<0?"color:#C62828":""}">${rs(r.net)}</span></div>
+    ${d.rows.map((r,i)=>`<div class="wcard"><div class="tap" data-pr="${i}"><div class="top"><span>${esc(r.worker)}</span><span class="big-num" style="font-size:22px;${r.net<0?"color:#C62828":""}">${rs(r.net)}</span></div>
       <div class="meta">Present ${r.present} · paid leave ${r.paidLeaves} of ${r.leavesEarned} earned · unpaid ${r.unpaid} · late/early ${r.late+r.early} min</div>
       <div class="meta">${r.complete||r.locked
         ?`${rs(r.salary)} − ${rs(Math.round(r.absenceCut))} unpaid days − ${rs(Math.round(r.timeCut))} late/early + ${rs(r.incentives)} incentive − ${rs(r.advances)} advance`
-        :`Earned so far ${rs(Math.round(r.salary-r.absenceCut))} for ${r.present+r.paidLeaves} days − ${rs(Math.round(r.timeCut))} late/early + ${rs(r.incentives)} incentive − ${rs(r.advances)} advance`}</div></button>`).join("")||'<div class="list"><div class="empty">No workers</div></div>'}
+        :`Earned so far ${rs(Math.round(r.salary-r.absenceCut))} for ${r.present+r.paidLeaves} day${r.present+r.paidLeaves===1?"":"s"} − ${rs(Math.round(r.timeCut))} late/early + ${rs(r.incentives)} incentive − ${rs(r.advances)} advance`}</div></div>
+      <div class="chips" style="margin:10px 0 0"><button class="chip wa" data-slip="${i}">WhatsApp salary slip</button></div></div>`).join("")||'<div class="list"><div class="empty">No workers</div></div>'}
     <div class="actions">
-      ${!d.locked&&d.complete?`<button class="big-btn" id="mLock">Mark ${esc(monthName(payMonth))} as paid</button>`:""}
-      ${d.locked?`<button class="act" id="mUnlock">Unlock ${esc(monthName(payMonth))}</button>`:""}
+      ${!d.locked&&d.complete?`<button class="big-btn" id="mLock">Mark ${esc(monthName(d.month))} as paid</button>`:""}
+      ${d.locked?`<button class="act" id="mUnlock">Unlock ${esc(monthName(d.month))}</button>`:""}
     </div>
-    <p class="note" style="color:var(--muted)">Day rate = salary ÷ 30. Minute rate = day rate ÷ ${+cfg.shiftMinutes||720}. Leaves: 1 paid per 6 days worked, up to 4. Tap a worker for day-by-day details.</p>`;
+    <p class="note" style="color:var(--muted)">Day rate = salary ÷ 30. Minute rate = day rate ÷ ${+cfg.shiftMinutes||720}. Leaves: 1 paid per 6 days worked, up to 4. Incentives use final daily sales (actual where you entered it). Tap a worker for day-by-day details.</p>`;
   $("mPrev").onclick=()=>{payMonth=shiftMonth(payMonth,-1);renderPayTab();};
   $("mNext").onclick=()=>{if(payMonth<cur){payMonth=shiftMonth(payMonth,1);renderPayTab();}};
-  $("ownBody").querySelectorAll("[data-pr]").forEach(b=>b.onclick=()=>payDetail(d.rows[+b.dataset.pr]));
+  $("ownBody").querySelectorAll("[data-pr]").forEach(b=>b.onclick=()=>payDetail(d,d.rows[+b.dataset.pr]));
+  $("ownBody").querySelectorAll("[data-slip]").forEach(b=>b.onclick=()=>sendSlip(d,d.rows[+b.dataset.slip]));
   if($("mLock"))$("mLock").onclick=async()=>{
-    if(!await ask({title:"Mark "+monthName(payMonth)+" as paid?",text:"The salaries and advances for this month get locked. New advances will go to the next month.",yes:"Mark paid",no:"Not yet"}))return;
-    try{await ownerCall("lock",{month:payMonth},90000);await loadOwner();toast("Marked paid");renderPayTab();}catch(e){toast(e.message,4000);}
+    if(!await ask({title:"Mark "+monthName(d.month)+" as paid?",text:"The salaries and advances for this month get locked. New advances will go to the next month.",yes:"Mark paid",no:"Not yet"}))return;
+    ownBusy("Locking the month…");
+    try{await ownerCall("lock",{month:d.month},90000);await loadOwner();dropCache("pay:");dropCache("adv");toast("Marked paid");renderPayTab();}catch(e){toast(e.message,4000);renderPayTab();}
   };
   if($("mUnlock"))$("mUnlock").onclick=async()=>{
-    if(!await ask({title:"Unlock "+monthName(payMonth)+"?",text:"Use this only to fix a mistake. Figures will be recalculated from the current data.",yes:"Unlock",no:"Cancel",danger:true}))return;
-    try{await ownerCall("unlock",{month:payMonth});await loadOwner();toast("Unlocked");renderPayTab();}catch(e){toast(e.message,4000);}
+    if(!await ask({title:"Unlock "+monthName(d.month)+"?",text:"Use this only to fix a mistake. Figures will be recalculated from the current data.",yes:"Unlock",no:"Cancel",danger:true}))return;
+    ownBusy("Unlocking…");
+    try{await ownerCall("unlock",{month:d.month});await loadOwner();dropCache("pay:");dropCache("adv");toast("Unlocked");renderPayTab();}catch(e){toast(e.message,4000);renderPayTab();}
   };
 }
-function payDetail(r){
-  $("formTitle").textContent=r.worker+" · "+monthName(payMonth);$("formFoot").classList.add("hidden");
+const dShort=s=>{const x=new Date(s+"T12:00:00");return x.getDate()+" "+x.toLocaleDateString("en-IN",{month:"short"});};
+function slipText(d,r){
+  const done=r.complete||r.locked,period=`1–${r.daysInMonth} ${new Date(d.month+"-01T12:00:00").toLocaleDateString("en-IN",{month:"short",year:"numeric"})}`;
+  const lates=r.days.filter(x=>x.present&&x.late).map(x=>`${dShort(x.date)} (${x.late} min)`);
+  const earlies=r.days.filter(x=>x.present&&x.early).map(x=>`${dShort(x.date)} (${x.early} min)`);
+  const absents=r.days.filter(x=>!x.present).map(x=>dShort(x.date));
+  const missed=r.days.filter(x=>x.present&&x.flags&&x.flags.missedOut).map(x=>dShort(x.date));
+  const incs=r.days.filter(x=>x.incentive).map(x=>`${dShort(x.date)} ${rs(x.incentive)}`);
+  const advs=(r.advanceList||[]).map(a=>`${dShort(a.date)} ${rs(a.amount)}`);
+  let t=`*${cfg.shop} – Salary slip*\n*${r.worker}* · ${monthName(d.month)}\n`;
+  t+=done?`Period: ${period}\n${r.locked?"Status: Paid":"Payment date: "+fmtDate(shiftMonth(d.month,1)+"-07")}\n`:`*Statement till ${fmtDate(ymd(new Date()))}* (month in progress)\n`;
+  t+=`\n*Attendance*\nDays present: ${r.present}${done?` of ${r.employed}`:` of ${r.counted} so far`}\nPaid leaves used: ${r.paidLeaves} (earned ${r.leavesEarned})\nUnpaid days: ${r.unpaid}\n`;
+  if(absents.length)t+=`Absent on: ${absents.join(", ")}\n`;
+  t+=`Late: ${r.late} min${lates.length?" – "+lates.join(", "):""}\n`;
+  t+=`Left early: ${r.early} min${earlies.length?" – "+earlies.join(", "):""}\n`;
+  if(missed.length)t+=`Missed check-out: ${missed.join(", ")}\n`;
+  t+=`\n*Earnings*\n`+(done?`Monthly salary: ${rs(r.salary)}\n`:`Earned for ${r.present+r.paidLeaves} day${r.present+r.paidLeaves===1?"":"s"}: ${rs(Math.round(r.salary-r.absenceCut))}\n`);
+  t+=`Incentives: ${rs(r.incentives)}${incs.length?" – "+incs.join(", "):""}\n`;
+  t+=`\n*Deductions*\n`+(done?`Unpaid days (${r.unpaid}): ${rs(Math.round(r.absenceCut))}\n`:"")+
+     `Late / early (${r.late+r.early} min): ${rs(Math.round(r.timeCut))}\nAdvances: ${rs(r.advances)}${advs.length?" – "+advs.join(", "):""}\n`;
+  t+=`\n*Net pay: ${rs(r.net)}*`;
+  return t;
+}
+function sendSlip(d,r){
+  const p=own.profiles.list.find(x=>x.name===r.worker),num=p&&p.mobile?p.mobile:"";
+  const txt=slipText(d,r);
+  if(num){window.open("https://wa.me/91"+num+"?text="+encodeURIComponent(txt),"_blank");return;}
+  ask({title:"No WhatsApp number for "+r.worker,text:"Add it in 👥 Staff to send slips directly. Share the slip another way for now?",yes:"Share",no:"Cancel"}).then(ok=>{
+    if(!ok)return;if(navigator.share)navigator.share({text:txt}).catch(()=>{});else window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank");});
+}
+function payDetail(d,r){
+  $("formTitle").textContent=r.worker+" · "+monthName(d.month);$("formFoot").classList.add("hidden");
   const line=(a,b)=>`<div class="li"><span>${a}</span><b>${b}</b></div>`;
   $("formBody").innerHTML=listBox([(r.complete||r.locked)?line("Monthly salary",rs(r.salary))+line(`Unpaid days (${r.unpaid})`,"− "+rs(Math.round(r.absenceCut)))
-      :line(`Earned so far (${r.present+r.paidLeaves} days)`,rs(Math.round(r.salary-r.absenceCut))),
+      :line(`Earned so far (${r.present+r.paidLeaves} day${r.present+r.paidLeaves===1?"":"s"})`,rs(Math.round(r.salary-r.absenceCut))),
       line(`Late ${r.late} min + early ${r.early} min`,"− "+rs(Math.round(r.timeCut))),line("Incentives","+ "+rs(r.incentives)),
       line("Advances","− "+rs(r.advances)),`<div class="li"><span><b>Net pay</b></span><b style="font-size:22px;${r.net<0?"color:#C62828":""}">${rs(r.net)}</b></div>`])+
-    `<p class="note" style="color:var(--muted);margin:8px 4px">Present ${r.present} of ${r.counted} days counted · leaves earned ${r.leavesEarned} · paid leaves ${r.paidLeaves} · unpaid ${r.unpaid}${r.employed<r.daysInMonth?` · employed ${r.employed} of ${r.daysInMonth} days`:""}</p>`+
+    `<button class="wa-btn" id="pdSlip">Send salary slip on WhatsApp</button>
+    <p class="note" style="color:var(--muted);margin:8px 4px">Present ${r.present} of ${r.counted} days counted · leaves earned ${r.leavesEarned} · paid leaves ${r.paidLeaves} · unpaid ${r.unpaid}${r.employed<r.daysInMonth?` · employed ${r.employed} of ${r.daysInMonth} days`:""}</p>`+
     (r.advanceList&&r.advanceList.length?`<div class="sec">Advances</div>`+listBox(r.advanceList.map(a=>line(esc(fmtDate(a.date))+(a.note?` <span class="m">${esc(a.note)}</span>`:""),rs(a.amount)))):"")+
-    `<div class="sec">Day by day</div><div class="scroll-x"><table class="tbl"><tr><th>Date</th><th>In</th><th>Out</th><th class="num">Late</th><th class="num">Early</th><th class="num">Shop sales</th><th class="num">Incentive</th></tr>`+
+    `<div class="sec">Day by day</div><div class="scroll-x"><table class="tbl"><tr><th>Date</th><th>In</th><th>Out</th><th class="num">Late</th><th class="num">Early</th><th class="num">Day sales</th><th class="num">Incentive</th></tr>`+
     r.days.map(x=>`<tr><td>${esc(x.date.slice(8))}</td>${x.present?`<td>${x.inT?fmtClock(x.inT):"–"}</td><td>${x.outT?fmtClock(x.outT):(x.flags&&x.flags.missedOut?'<span class="flag">missed</span>':"–")}</td><td class="num">${x.late||""}</td><td class="num">${x.early||""}</td>`:`<td colspan="4"><span class="flag">Absent</span></td>`}<td class="num">${x.sales?rs(x.sales):""}</td><td class="num">${x.incentive?rs(x.incentive):""}</td></tr>`).join("")+
     `</table></div>`;
+  $("pdSlip").onclick=()=>sendSlip(d,r);
   openLayer("formLayer");
+}
+
+/* ---------- 🍽 Staff meals ---------- */
+let mealMonth="";
+function renderMealsTab(){
+  if(!mealMonth)mealMonth=ymd(new Date()).slice(0,7);
+  const m=mealMonth;
+  return cached("meals:"+m,()=>ownerCall("meals",{month:m}),drawMealsTab,renderMealsTab);
+}
+function drawMealsTab(d){
+  const cur=ymd(new Date()).slice(0,7),by={};
+  d.list.forEach(x=>{const e=by[x.employee]||(by[x.employee]={value:0,items:0,flags:0,list:[]});e.value+=x.value;e.items+=x.lines.reduce((a,l)=>a+l.qty,0);if(x.other)e.flags++;e.list.push(x);});
+  const names=Object.keys(by).sort((a,b)=>by[b].value-by[a].value),total=names.reduce((a,n)=>a+by[n].value,0);
+  $("ownBody").innerHTML=`<div class="datebar"><button id="fPrev" aria-label="Previous month">‹</button><b>${esc(monthName(mealMonth))}</b><button id="fNext" aria-label="Next month" ${mealMonth>=cur?"disabled style='opacity:.3'":""}>›</button></div>
+    <div class="stat wide" style="margin-bottom:10px"><div class="k">Staff meals this month (at Evening menu prices)</div><div class="v">${rs(total)}</div></div>
+    ${names.map(n=>`<button class="wcard" data-fm="${esc(n)}"><div class="top"><span>${esc(n)}</span><span>${rs(by[n].value)}</span></div>
+      <div class="meta">${by[n].items} item${by[n].items===1?"":"s"} · ${by[n].list.length} time${by[n].list.length===1?"":"s"}${by[n].flags?` · <span class="flag">⚠ ${by[n].flags} logged from another phone</span>`:""}</div></button>`).join("")||'<div class="list"><div class="empty">No staff meals logged this month</div></div>'}`;
+  $("fPrev").onclick=()=>{mealMonth=shiftMonth(mealMonth,-1);renderMealsTab();};
+  $("fNext").onclick=()=>{if(mealMonth<cur){mealMonth=shiftMonth(mealMonth,1);renderMealsTab();}};
+  $("ownBody").querySelectorAll("[data-fm]").forEach(b=>b.onclick=()=>{
+    const e=by[b.dataset.fm];
+    $("formTitle").textContent=b.dataset.fm+" · meals";$("formFoot").classList.add("hidden");
+    $("formBody").innerHTML=`<div class="stat wide" style="margin-bottom:10px"><div class="k">${esc(monthName(mealMonth))}</div><div class="v">${rs(e.value)}</div></div>`+
+      e.list.slice().reverse().map(x=>`<div class="wcard"><div class="top"><span>${esc(fmtDate(x.date))}, ${esc(fmtClock(x.time))}</span><span>${rs(x.value)}</span></div>
+        <div class="meta">${x.lines.map(l=>esc(l.n)+" × "+l.qty).join(", ")}</div>
+        ${x.other?`<div class="meta"><span class="flag">⚠ Logged from ${esc(x.phoneOf)} (${esc(x.phone)})</span></div>`:""}</div>`).join("");
+    openLayer("formLayer");
+  });
 }
 
 /* ---------- Stock list editor ---------- */
@@ -2001,6 +2257,29 @@ $("priceSave").addEventListener("click",async()=>{
 });
 
 /* =========================================================
+   PULL DOWN TO REFRESH (inside the app, not a page reload)
+   ========================================================= */
+function attachPull(el,top,refresh){
+  let y0=null,dy=0;const ind=$("pullInd");
+  el.addEventListener("touchstart",e=>{y0=top()<=0&&e.touches.length===1?e.touches[0].clientY:null;dy=0;},{passive:true});
+  el.addEventListener("touchmove",e=>{if(y0===null)return;dy=e.touches[0].clientY-y0;
+    if(dy>12){ind.classList.remove("hidden");ind.textContent=dy>80?"↻ Release to refresh":"↓ Pull to refresh";}},{passive:true});
+  el.addEventListener("touchend",()=>{
+    if(y0!==null&&dy>80){ind.textContent="↻ Refreshing…";Promise.resolve(refresh()).finally(()=>setTimeout(()=>ind.classList.add("hidden"),400));}
+    else ind.classList.add("hidden");
+    y0=null;dy=0;
+  });
+}
+attachPull($("sumBody"),()=>$("sumBody").scrollTop,()=>loadSummary(true));
+attachPull($("ownBody"),()=>$("ownBody").scrollTop,()=>{if(ownerPin)return renderOwner();});
+attachPull(document.querySelector("main#attView").parentNode,()=>window.scrollY+(stack.length?1:0),()=>{
+  if(stack.length)return;
+  if(curSection==="attendance"||curSection==="advances"){syncPunches();return loadMyData();}
+  if(curSection==="stock")return loadStockWeek();
+  syncPending();syncMeals();pullConfig();return refreshMe();
+});
+
+/* =========================================================
    START
    ========================================================= */
 async function keepAwake(){try{if("wakeLock" in navigator&&document.visibilityState==="visible")await navigator.wakeLock.request("screen");}catch(e){}}
@@ -2013,8 +2292,10 @@ setInterval(()=>{checkNudge();checkStaff();if(curSection==="attendance"&&!punchi
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
 
 if(!menu)$("chooser").classList.remove("hidden");
-applyMenu();keepAwake();checkStaff();syncPending();syncPunches();
+applyMenu();keepAwake();checkStaff();syncPending();syncPunches();syncMeals();
 if(curSection==="attendance")openAttendance();
+if(curSection==="advances")openAdvances();
+if(S.get("reopen","")==="sum"&&menu&&canSummary())openSummary();     // the app was reloaded while the summary was open
 if(curSection==="stock")openStock();
 pullConfig();refreshMe();
 </script>
