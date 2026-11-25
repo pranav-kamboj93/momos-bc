@@ -664,6 +664,9 @@ const TS=()=>firebase.firestore.Timestamp;
 const D=p=>db.doc(p);
 function withTimeoutP(p,ms,msg){let t;return Promise.race([p,new Promise((_,rej)=>{t=setTimeout(()=>rej(new Error(msg||"No answer from Firebase. Check the internet.")),ms);})]).finally(()=>clearTimeout(t));}
 const monthOf=d=>String(d).slice(0,7);
+// Firebase can't store a list inside a list: incentive slabs are saved as {s: sales, i: incentive} and used as [sales, incentive]
+const slabsIn=a=>(a||[]).map(x=>Array.isArray(x)?[Number(x[0]),Number(x[1])]:[Number(x.s),Number(x.i)]).filter(x=>x[0]>0);
+const slabsOut=a=>(a||[]).map(x=>({s:Number(x[0]),i:Number(x[1])}));
 // workers can read a business day's records until 2 PM the day after
 function untilFor(bdate){const [y,m,d]=bdate.split("-").map(Number);return TS().fromDate(new Date(y,m-1,d+1,14,0,0));}
 
@@ -765,6 +768,8 @@ function listenShared(){
   cfgUnsub=D("config/shared").onSnapshot(s=>{
     if(!s.exists)return;
     cfg=pickShared(s.data());cfg.staff=staffOf("outlet").map(x=>x.name);F.set("cfg",cfg);
+    // the staff name (not the Google account name) is what bills, meals and attendance use
+    if(me.staffId){const st=staffById(me.staffId);if(st&&st.name!==me.name){me.name=st.name;F.set("me",me);if(staffDay.name&&staffDay.bdate===businessDate(new Date())&&cfg.staff.indexOf(staffDay.name)<0){staffDay={bdate:"",name:""};S.set("staffDay",staffDay);}}}
     applyPrices();applyMenu();checkStaff();refreshOpenViews();
   },()=>{});
   if(metaUnsub)metaUnsub();
@@ -1053,7 +1058,7 @@ async function onAuth(user){
       renderHeader();return;
     }
     const u=snap.data(),st=staffById(u.staffId);
-    me={status:u.status||"pending",uid:user.uid,name:st?st.name:(u.gname||""),staffId:u.staffId||"",views:u.views||[],access:u.access||{},admin:false,slabs:u.slabs||[],email:u.email||""};
+    me={status:u.status||"pending",uid:user.uid,name:st?st.name:(u.gname||""),staffId:u.staffId||"",views:u.views||[],access:u.access||{},admin:false,slabs:slabsIn(u.slabs),email:u.email||""};
     F.set("me",me);
     if(CONNECT){showSignIn("connected",me.status==="active"?"You're already approved.":"The owner will approve you. Keep using the app as usual.");return;}
     if(me.status==="paused"){showSignIn("paused");renderHeader();return;}
@@ -2063,7 +2068,7 @@ async function monthTotals(month){   // final daily sales: the owner's actual fi
     fin[d]=actual[d]!==undefined&&actual[d]!==null?Number(actual[d]):billed[d];});
   return {days,billed,actual,fin};
 }
-async function payDocs(){const list=cfg.staffList||[],docs=await Promise.all(list.map(s=>getDoc("pay/"+s.id).catch(()=>null)));const o={};list.forEach((s,i)=>{o[s.id]=docs[i]||{};});return o;}
+async function payDocs(){const list=cfg.staffList||[],docs=await Promise.all(list.map(s=>getDoc("pay/"+s.id).catch(()=>null)));const o={};list.forEach((s,i)=>{o[s.id]=Object.assign({},docs[i]||{},{slabs:slabsIn((docs[i]||{}).slabs)});});return o;}
 function ladderFrom(pays){const s=new Set();Object.values(pays).forEach(p=>(p.slabs||[]).forEach(x=>{if(Number(x[0])>0)s.add(Number(x[0]));}));return Array.from(s).sort((a,b)=>a-b);}
 
 /* ---------- salary engine (rules unchanged; kitchen has no late/early cuts) ---------- */
@@ -2227,8 +2232,8 @@ function accessForm(d,u){
       if(sid==="__new"){const name=$("acNew").value.trim();if(!name){$("acHint").textContent="Enter the name";$("acSave").disabled=false;return;}
         sid=slugId(name);await saveShared(c=>({staffList:(c.staffList||[]).concat([{id:sid,name,loc:$("acNewLoc").value,active:true,joined:"",left:""}])}));}
       if(sid==="__none")sid="";
-      const pay=sid?(await getDoc("pay/"+sid))||{}:{};
-      await withTimeoutP(D("users/"+u.uid).update({status:"active",staffId:sid,views,access:{billing:$("acB").checked,stock:$("acS").checked},slabs:pay.slabs||[],approvedAt:TS().now()}),15000);
+      const pay=sid?(await getDoc("pay/"+sid))||{}:{};pay.slabs=slabsIn(pay.slabs);
+      await withTimeoutP(D("users/"+u.uid).update({status:"active",staffId:sid,views,access:{billing:$("acB").checked,stock:$("acS").checked},slabs:slabsOut(pay.slabs),approvedAt:TS().now()}),15000);
       closeLayer();toast(u.status==="pending"?"Approved":"Access saved");delete ownCache.staff;renderStaffTab();
     }catch(e){$("acHint").textContent=e.message;$("acSave").disabled=false;}
   };
@@ -2270,11 +2275,11 @@ function profileForm(d,id){
     $("pfSave").disabled=true;
     try{
       d.pays[s.id]=p;
-      await withTimeoutP(D("pay/"+s.id).set({salary:p.salary,slabs:p.slabs,mobile:p.mobile}),15000);
+      await withTimeoutP(D("pay/"+s.id).set({salary:p.salary,slabs:slabsOut(p.slabs),mobile:p.mobile}),15000);
       const ladder=ladderFrom(d.pays);
       await saveShared(c=>{const list=(c.staffList||[]).slice(),i=list.findIndex(x=>x.id===s.id);if(i>=0)list[i]=s;else list.push(s);return {staffList:list,ladder};});
       const us=(d.users||[]).filter(u=>u.staffId===s.id);
-      await Promise.all(us.map(u=>D("users/"+u.uid).update({slabs:p.slabs})));
+      await Promise.all(us.map(u=>D("users/"+u.uid).update({slabs:slabsOut(p.slabs)})));
       closeLayer();toast(s.name+" saved");dropCache("pay:");dropCache("tg:");delete ownCache.staff;renderStaffTab();
     }catch(e){h.textContent=e.message;$("pfSave").disabled=false;}
   };
@@ -2293,7 +2298,7 @@ async function openEmployee(staffId){
     const box=r?`<div class="wcard"><div class="top"><span>${pr.complete||r.locked?"Net pay":"Earned so far"}</span><span class="big-num" style="font-size:22px;${r.net<0?"color:#C62828":""}">${rs(pr.complete||r.locked?r.net:r.earned)}</span></div>
       <div class="meta">${monthName(m)}${r.locked?" · paid":""}${!(pr.complete||r.locked)?` · advances ${rs(r.advances)}`:""}</div>
       <button class="wa-btn" id="empSlip">Send salary slip on WhatsApp</button></div>`:"";
-    $("formBody").innerHTML=employeeHTML(d,{slabs:(pay&&pay.slabs)||[],payBox:box});
+    $("formBody").innerHTML=employeeHTML(d,{slabs:slabsIn(pay&&pay.slabs),payBox:box});
     bindEmployee($("formBody"),staffId,{self:false});
     if($("empSlip"))$("empSlip").onclick=()=>sendSlip(pr,r);
   }catch(e){$("formBody").innerHTML=`<div class="status bad">${esc(e.message)}</div>`;}
@@ -2860,7 +2865,7 @@ async function copyHistory(pin,msg,recentDays){
   const idOf=name=>{const s=list.find(x=>x.name===name)||list.find(x=>x.name.toLowerCase()===String(name).toLowerCase());return s?s.id:"";};
   if(!recentDays){
     msg("Saving staff and settings…");
-    await inChunks(Object.keys(pays),10,id=>D("pay/"+id).set(pays[id]));
+    await inChunks(Object.keys(pays),10,id=>D("pay/"+id).set(Object.assign({},pays[id],{slabs:slabsOut(pays[id].slabs)})));
     const c=pr.config||{},ladder=ladderFrom(pays);
     const L=Object.assign({},cfg.locations);L.outlet=Object.assign({},locCfg("outlet"),c.shopLat!=null?{lat:c.shopLat,lng:c.shopLng}:{},
       c.radius?{radius:c.radius}:{},c.shiftStart?{start:c.shiftStart}:{},c.grace!=null?{grace:c.grace}:{},c.shiftMinutes?{minutes:c.shiftMinutes}:{});
