@@ -1,6 +1,7 @@
-// Offline support. Bump VERSION whenever you upload a new index.html.
-const VERSION = "mbc-v5";
-const FILES = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+// Offline support. Bump VERSION whenever you upload new app files.
+const VERSION = "mbc-v6";
+const FILES = ["./", "./index.html", "./app.html", "./firebase-config.js", "./manifest.json", "./icon-192.png", "./icon-512.png",
+  "./vendor/firebase-app-compat.js", "./vendor/firebase-auth-compat.js", "./vendor/firebase-firestore-compat.js"];
 const APP_PATHS = FILES.map(f => new URL(f, self.location).pathname);
 
 self.addEventListener("install", e => {
@@ -9,7 +10,7 @@ self.addEventListener("install", e => {
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
-// Only the app's own files are cached. Everything else (Google Sheet calls) always goes to the network.
+// Only the app's own files are cached. Everything else (Google Sheet, Firebase) always goes to the network.
 self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== location.origin || !APP_PATHS.includes(url.pathname)) return;

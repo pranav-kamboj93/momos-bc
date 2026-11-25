@@ -7,6 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <title>Momos BC Billing</title>
 <link rel="manifest" href="manifest.json">
+<script src="firebase-config.js"></script>
 <link rel="icon" href="icon-192.png">
 <style>
 :root{
@@ -579,6 +580,15 @@ let cfg,local;
   S.set("cfg",cfg);S.set("local",local);
 })();
 let cfgMeta=S.get("cfgMeta",{v:0,dirty:false});
+// Shared settings are stored in full, and taken again from the Sheet after every app update,
+// so a setting that an older app version didn't know about (like the shop location) is never lost.
+const APP_BUILD="5.3";
+(function recoverFromRaw(){
+  const raw=S.get("cfgRaw",null);if(!raw)return;
+  let changed=false;
+  Object.keys(SHARED_DEFAULTS).forEach(k=>{if((cfg[k]===undefined||cfg[k]===null)&&raw[k]!==undefined&&raw[k]!==null){cfg[k]=raw[k];changed=true;}});
+  if(changed)S.set("cfg",cfg);
+})();
 
 // unique code for this device, used at the start of every bill number
 let device=S.get("device","");
@@ -709,7 +719,10 @@ function renderHeader(){
   else if(me.status==="unregistered"&&cfg.staff.length)warn=`⚠️ This phone (code ${device}) is not linked to a worker. Tell the owner.`;
   else if(me.status==="worker"&&!sec.length)warn="⚠️ No sections are switched on for you. Ask the owner.";
   else if(me.status==="owner"&&scriptVersion&&scriptVersion<NEED_SCRIPT)warn=`⚠️ The Google Sheet script is out of date (version ${scriptVersion}, app needs ${NEED_SCRIPT}). Paste the new Code.gs and redeploy: Deploy → Manage deployments → Edit → New version.`;
+  const raw=S.get("cfgRaw",{})||{};
+  if(raw.fbConnect&&!S.get("fbConnected",false)&&typeof FIREBASE_CONFIG!=="undefined"&&FIREBASE_CONFIG.apiKey)warn="🔗 One-time step: tap here to connect your Google account for the new app";
   $("banner").textContent=warn;$("banner").classList.toggle("hidden",!warn);
+  $("banner").onclick=warn.indexOf("🔗")===0?()=>location.href="app.html?connect=1":null;
   // section switch
   const names={billing:"🧾 Billing",meals:"🍽 Meals",attendance:"🕒 Attendance",advances:"💵 Advances",stock:"📦 Stock"};
   $("secNav").innerHTML=sec.map(x=>`<button data-sec="${x}" class="${x===curSection?"on":""}">${names[x]}</button>`).join("");
@@ -1102,8 +1115,10 @@ async function remoteVisits(m){
 
 /* shared settings travel through the Sheet; newest version wins */
 function adoptConfig(c){
+  S.set("cfgRaw",c);
+  if(c.platform==="firebase"){location.replace("app.html");return;}   // the owner switched everyone to the Firebase app
   cfg=pickShared(c);if(!Array.isArray(cfg.staff))cfg.staff=[];if(!cfg.prices)cfg.prices={};
-  cfgMeta={v:Number(c.v)||0,dirty:false};S.set("cfg",cfg);S.set("cfgMeta",cfgMeta);
+  cfgMeta={v:Number(c.v)||0,dirty:false,app:APP_BUILD};S.set("cfg",cfg);S.set("cfgMeta",cfgMeta);
   applyPrices();applyMenu();checkStaff();
 }
 async function pushConfig(){
@@ -1124,9 +1139,17 @@ async function pullConfig(){
     const c=d.config;
     if(!c){if(!ownerPin)return "same";if(!cfgMeta.v)cfgMeta.v=Date.now();cfgMeta.dirty=true;S.set("cfgMeta",cfgMeta);return (await pushConfig())==="shared"?"seeded":"error";}
     if(cfgMeta.dirty&&cfgMeta.v>=Number(c.v)&&ownerPin)return (await pushConfig())==="shared"?"pushed":"error";
-    if(Number(c.v)>cfgMeta.v){adoptConfig(c);return "loaded";}
+    // take the Sheet's settings when they're newer, or when this phone just got an app update
+    if(Number(c.v)>cfgMeta.v||(cfgMeta.app!==APP_BUILD&&!cfgMeta.dirty)){adoptConfig(c);return "loaded";}
     return "same";
   }catch(e){return "error";}
+}
+/* Save only the fields changed on this phone, on top of the latest shared settings from the Sheet,
+   so a phone with an older copy can never undo someone else's newer change (like the shop location). */
+async function saveShared(changes){
+  if(local.sheetUrl&&navigator.onLine)await pullConfig();
+  cfg=Object.assign({},cfg,typeof changes==="function"?changes(cfg):changes);
+  return saveCfg();
 }
 async function saveCfg(){
   cfgMeta={v:Date.now(),dirty:true};S.set("cfg",cfg);S.set("cfgMeta",cfgMeta);
@@ -1138,6 +1161,8 @@ const cfgResultMsg=(r,what)=>r==="shared"?what+" saved for all phones":r==="loca
 window.addEventListener("online",()=>{syncPending();syncPunches();syncMeals();pullConfig();refreshMe();});
 setInterval(()=>{syncPending();syncPunches();syncMeals();},60000);
 setInterval(()=>{pullConfig();refreshMe();},5*60000);
+// while the owner prepares the switch-over, check for it every minute so phones move over quickly
+setInterval(()=>{const raw=S.get("cfgRaw",{})||{};if(raw.fbConnect)pullConfig();},60000);
 
 /* =========================================================
    SUMMARY  (built from the Google Sheet = all devices)
@@ -1402,7 +1427,10 @@ function getPosition(){
       "Could not get the location. Turn on GPS and try again.")),{enableHighAccuracy:true,timeout:20000,maximumAge:0});
   });
 }
-function openAttendance(){renderAtt();loadMyData();}
+function openAttendance(){
+  renderAtt();loadMyData();
+  if(!shopSet())pullConfig().then(()=>{if(curSection==="attendance")renderAtt();});   // don't wait for the 5-minute refresh
+}
 async function loadMyData(){
   if(!local.sheetUrl||!navigator.onLine||me.status!=="worker"){att.loaded=true;renderAtt();renderAdv();return;}
   try{
@@ -1425,7 +1453,7 @@ function todayFor(name){
 function renderAtt(){
   const v=$("attView");
   if(!local.sheetUrl){v.innerHTML=`<div class="status bad">Attendance needs this phone to be connected to the Google Sheet. Tell the owner.</div>`;return;}
-  if(!shopSet()){v.innerHTML=`<div class="status bad">The owner hasn't set the shop location yet, so attendance can't be marked.</div>`;return;}
+  if(!shopSet()){v.innerHTML=`<div class="status bad">This phone doesn't have the shop location yet. Pull down to refresh. If it still shows this, the owner needs to set the location in 🔒 → Settings.</div>`;return;}
   const mine=me.status==="worker",msg=attMsg.text?`<div class="hint ${attMsg.cls}" style="margin-top:12px">${esc(attMsg.text)}</div>`:"";
   let h="";
   if(mine){
@@ -2109,14 +2137,15 @@ function renderStockListTab(){
   $("slSave").onclick=async()=>{
     read();
     const list=slDraft.map(s=>({name:s.name.trim(),type:s.type==="yesno"?"yesno":"count",items:[...new Set(s.items.map(x=>x.trim()).filter(Boolean))]})).filter(s=>s.name&&s.items.length);
-    cfg=Object.assign({},cfg,{stockList:list});slDraft=null;
-    toast(cfgResultMsg(await saveCfg(),"Stock list"),3500);renderOwner();
+    slDraft=null;
+    toast(cfgResultMsg(await saveShared({stockList:list}),"Stock list"),3500);renderOwner();
   };
 }
 
 /* ---------- Settings ---------- */
-let newLoc=null;
+let newLoc=null,settingsBase=null;
 function renderSettingsTab(){
+  settingsBase=pickShared(cfg);   // what the form started from
   const f=(id,label,val,note,type="text",mode="text")=>`<div class="field"><label for="${id}">${label}</label><input id="${id}" type="${type}" inputmode="${mode}" value="${esc(val)}" autocomplete="off">${note?`<div class="note">${note}</div>`:""}</div>`;
   const connected=!!local.sheetUrl,loc=newLoc||(shopSet()?{lat:+cfg.shopLat,lng:+cfg.shopLng}:null);
   $("ownBody").innerHTML=`<div class="form">
@@ -2148,7 +2177,9 @@ function renderSettingsTab(){
     <div class="field"><label>Phone code</label><div class="devcode">${device}</div></div>
     <button class="act" id="sTest">Test Google Sheet connection</button>
     <div class="hint warn" id="sHint"></div>
-    <button class="big-btn" id="sSave">Save settings</button></div>`;
+    <button class="big-btn" id="sSave">Save settings</button>
+    <button class="act" id="sTryFb">🧪 Try the new Firebase app on this phone</button></div>`;
+  $("sTryFb").onclick=()=>{localStorage.setItem("fb.try","true");location.replace("app.html");};
   $("sPrices").onclick=()=>{priceDraft={};priceCat="momos";renderPrices();openLayer("priceLayer");};
   $("setLoc").onclick=async()=>{
     const b=$("setLoc");b.disabled=true;b.textContent="Getting location…";
@@ -2215,7 +2246,12 @@ async function saveSettingsTab(){
     renderOwner();return;
   }
   try{if(local.sheetUrl&&startMonth&&startMonth!==own.payrollStart){await ownerCall("setPayrollStart",{month:startMonth});own.payrollStart=startMonth;}}catch(e){toast(e.message);}
-  if(sharedChanged){cfg=next;newLoc=null;toast(cfgResultMsg(await saveCfg(),"Settings"),3500);}else toast("Settings saved");
+  if(sharedChanged){
+    const base=settingsBase||pickShared(cfg),changes={};
+    Object.keys(next).forEach(k=>{if(JSON.stringify(next[k])!==JSON.stringify(base[k]))changes[k]=next[k];});
+    newLoc=null;
+    toast(Object.keys(changes).length?cfgResultMsg(await saveShared(changes),"Settings"):"Settings saved",3500);
+  }else toast("Settings saved");
   renderOwner();
 }
 
@@ -2236,7 +2272,7 @@ function renderPrices(){
     `<button class="act" id="pReset" style="width:100%;margin-top:6px">Reset all prices to the printed menu</button>`;
   $("pReset").onclick=async()=>{
     if(!await ask({title:"Reset all prices?",text:"Every item goes back to the printed menu price, on all devices.",yes:"Reset",no:"Cancel",danger:true}))return;
-    priceDraft={};cfg=Object.assign({},cfg,{prices:{}});const r=await saveCfg();renderPrices();toast(cfgResultMsg(r,"Prices"),3500);
+    priceDraft={};const r=await saveShared({prices:{}});renderPrices();toast(cfgResultMsg(r,"Prices"),3500);
   };
 }
 $("priceBody").addEventListener("click",e=>{const t=e.target.closest("[data-pcat]");if(t){priceCat=t.dataset.pcat;renderPrices();$("priceBody").scrollTop=0;}});
@@ -2250,10 +2286,13 @@ $("priceSave").addEventListener("click",async()=>{
   const keys=Object.keys(priceDraft);
   if(!keys.length){closeLayer();return;}
   if(keys.some(k=>priceDraft[k].some(x=>!(x>0)))){ask({title:"Some prices are empty",text:"Every price must be ₹1 or more.",yes:"OK",no:null});return;}
-  const map=Object.assign({},cfg.prices);
-  keys.forEach(k=>{const p=priceDraft[k],b=PREF[k].base;if(p[0]===b[0]&&p[1]===b[1])delete map[k];else map[k]=p;});
-  priceDraft={};cfg=Object.assign({},cfg,{prices:map});
-  closeLayer();toast(cfgResultMsg(await saveCfg(),"Prices"),3500);
+  const draft=priceDraft;priceDraft={};closeLayer();
+  const r=await saveShared(c=>{   // apply the edited prices on top of the latest price list
+    const map=Object.assign({},c.prices);
+    Object.keys(draft).forEach(k=>{const p=draft[k],b=PREF[k].base;if(p[0]===b[0]&&p[1]===b[1])delete map[k];else map[k]=p;});
+    return {prices:map};
+  });
+  toast(cfgResultMsg(r,"Prices"),3500);
 });
 
 /* =========================================================
@@ -2291,6 +2330,7 @@ document.addEventListener("visibilitychange",()=>{
 setInterval(()=>{checkNudge();checkStaff();if(curSection==="attendance"&&!punching)renderAtt();},60000);
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
 
+if(!/[?&]stay=1/.test(location.search)&&(((S.get("cfgRaw",{})||{}).platform==="firebase")||localStorage.getItem("fb.try")==="true"))location.replace("app.html");
 if(!menu)$("chooser").classList.remove("hidden");
 applyMenu();keepAwake();checkStaff();syncPending();syncPunches();syncMeals();
 if(curSection==="attendance")openAttendance();
