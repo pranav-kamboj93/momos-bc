@@ -413,6 +413,12 @@ html[data-theme="night"] .reward{background:#3A2E05;color:#FFE7A0;border-color:#
   <div class="layer-foot hidden" id="formFoot"></div>
 </section>
 
+<!-- Owner edits on the employee page (opens above it) -->
+<section class="layer hidden" id="dayLayer" aria-label="Edit" style="z-index:46">
+  <div class="layer-head"><button class="back-btn" data-close>← Back</button><h2 id="dayTitle"></h2></div>
+  <div class="layer-body" id="dayBody"></div>
+</section>
+
 <!-- Bill detail -->
 <section class="layer hidden" id="detLayer" aria-label="Bill details">
   <div class="layer-head"><button class="back-btn" data-close>← Back</button><h2 id="detTitle">Bill</h2></div>
@@ -1638,6 +1644,7 @@ function dayRows(st,month,data,bandMap,slabs){
     run+=r.late;r.runLate=run;
     let inc=0;const lvl=bandMap?Number(bandMap[d]||0):0;
     if(r.present&&lvl)(slabs||[]).forEach(x=>{if(lvl>=Number(x[0]))inc=Math.max(inc,Number(x[1]));});
+    const e=data.edits[d];if(e&&e.inc!==undefined&&e.inc!==null&&e.inc!==""){inc=Number(e.inc)||0;r.incSet=true;}
     r.incentive=inc;rows.push(r);
   });
   return rows;
@@ -1792,16 +1799,18 @@ function employeeHTML(d,o){
     </div>
     ${o.payBox||""}
     <div class="sec">Day by day</div>
-    ${rows.length?`<div class="scroll-x"><table class="tbl"><tr><th>Date</th><th>In</th><th>Out</th>${outlet?`<th class="num">Late</th><th class="num">Total</th><th class="num">Incentive</th>`:""}</tr>`+
-      rows.slice().reverse().map(r=>`<tr><td>${esc(r.date.slice(8))} ${esc(new Date(r.date+"T12:00:00").toLocaleDateString("en-IN",{weekday:"short"}))}</td>${r.present
-        ?`<td>${r.inT?fmtClock(r.inT):"–"}</td><td>${r.outT?fmtClock(r.outT):(r.flags.missedOut?'<span class="flag">missed</span>':"–")}</td>${outlet?`<td class="num">${r.late||""}</td><td class="num">${r.runLate}</td><td class="num">${r.incentive?rs(r.incentive):""}</td>`:""}`
-        :`<td colspan="${outlet?5:2}"><span class="flag info">Leave</span></td>`}</tr>`).join("")+`</table></div>`
+    ${o.owner?`<p class="note" style="color:var(--muted);margin:0 4px 6px">Tap ✏️ to change a day. Your changes replace the recorded times and the calculated incentive, and salary is recalculated from them.</p>`:""}
+    ${rows.length?`<div class="scroll-x"><table class="tbl"><tr><th>Date</th><th>In</th><th>Out</th>${outlet?`<th class="num">Late</th><th class="num">Total</th><th class="num">Incentive</th>`:""}${o.owner?"<th></th>":""}</tr>`+
+      rows.slice().reverse().map(r=>`<tr><td>${esc(r.date.slice(8))} ${esc(new Date(r.date+"T12:00:00").toLocaleDateString("en-IN",{weekday:"short"}))}${r.flags.edited?' <span class="m">✎</span>':""}</td>${r.present
+        ?`<td>${r.inT?fmtClock(r.inT):"–"}</td><td>${r.outT?fmtClock(r.outT):(r.flags.missedOut?'<span class="flag">missed</span>':"–")}</td>${outlet?`<td class="num">${r.late||""}</td><td class="num">${r.runLate}</td><td class="num">${r.incentive?rs(r.incentive):""}${r.incSet?" ✎":""}</td>`:""}`
+        :`<td colspan="${outlet?5:2}"><span class="flag info">Leave</span>${r.incSet&&r.incentive?" · "+rs(r.incentive)+" ✎":""}</td>`}${o.owner?`<td><button class="mini" data-ed="${r.date}" aria-label="Edit ${esc(r.date)}">✏️</button></td>`:""}</tr>`).join("")+`</table></div>`
       :`<div class="list"><div class="empty">No days yet this month</div></div>`}
     <div class="sec">Advances <span class="m" style="font-weight:600">· cycle 8th to 7th, settled in the salary on the 7th</span></div>
     ${keys.map((c,i)=>{const list=(cycles[c]||[]).sort((a,b)=>a.date<b.date?1:-1),tot=list.reduce((a,x)=>a+Number(x.amount||0),0);
       return `<details class="cyc" ${i===0?"open":""}><summary><span>${esc(cycleLabel(c))}${c===nowCycle?" (current)":""}</span><b>${rs(tot)}</b></summary>
-        ${list.length?listBox(list.map(a=>`<div class="li"><span>${esc(fmtDate(a.date))} <span class="m">${a.by==="Owner"?"added by owner":""}${a.note?" · "+esc(a.note):""}</span></span><b>${rs(a.amount)}</b></div>`)):`<div class="list"><div class="empty">No advances</div></div>`}</details>`;}).join("")}
-    ${o.self?`<button class="big-btn" id="addAdv" style="margin-top:14px">+ Add an advance I took</button>`:""}`;
+        ${list.length?listBox(list.map(a=>`<div class="li"><span>${esc(fmtDate(a.date))} <span class="m">${a.by==="Owner"?"added by owner":""}${a.note?" · "+esc(a.note):""}</span></span><span class="r"><b>${rs(a.amount)}</b>${o.owner?` <button class="mini" data-adv="${esc(a.id)}" aria-label="Edit advance">✏️</button>`:""}</span></div>`)):`<div class="list"><div class="empty">No advances</div></div>`}</details>`;}).join("")}
+    ${o.self?`<button class="big-btn" id="addAdv" style="margin-top:14px">+ Add an advance I took</button>`:""}
+    ${o.owner?`<button class="big-btn" id="empAddAdv" style="margin-top:14px">+ Add advance for ${esc(st.name)}</button>`:""}`;
 }
 function bindEmployee(v,staffId,o){
   v.querySelectorAll("[data-em]").forEach(b=>b.onclick=()=>{
@@ -1809,6 +1818,11 @@ function bindEmployee(v,staffId,o){
     if(o.self){meMonth=n;meData=null;openMyPage();}else{empMonth=n;openEmployee(staffId);}
   });
   if($("addAdv"))$("addAdv").onclick=workerAdvanceForm;
+  if(o.owner&&o.d){
+    v.querySelectorAll("[data-ed]").forEach(b=>b.onclick=()=>dayEditForm(staffId,o.d,b.dataset.ed));
+    v.querySelectorAll("[data-adv]").forEach(b=>b.onclick=()=>advanceEditForm(staffId,o.d.adv.find(a=>a.id===b.dataset.adv)));
+    if($("empAddAdv"))$("empAddAdv").onclick=()=>advanceEditForm(staffId,null);
+  }
 }
 function workerAdvanceForm(){
   $("formTitle").textContent="Record an advance";$("formFoot").classList.add("hidden");
@@ -1937,25 +1951,41 @@ function showStockWeek(loc){
 /* =========================================================
    B2B BILLING  (kitchen)
    ========================================================= */
-let b2bCart=F.get("b2bCart",{}),b2bBuyer="",b2bRecent=null;
+// cart: "itemId|packSize" -> number of packs, so the same item can go in different pack sizes
+let b2bCart=(()=>{const c=F.get("b2bCart",{}),o={};Object.keys(c).forEach(k=>{if(k.indexOf("|")>0)o[k]=c[k];});return o;})(),b2bSel={},b2bBuyer="",b2bRecent=null;
 const b2bMenu=()=>(cfg.b2bMenu||[]).filter(i=>i.name&&Number(i.rate)>0);
-const packPrice=i=>Number(i.rate)*(i.single?1:Number(i.pack));
-const packWord=(i,n)=>i.single?(n===1?"pack":"packs"):(n===1?"pack":"packs");
-function b2bLine(i,n){return i.single?`${i.name}: ${rs(i.rate)} × ${n} ${packWord(i,n)} = ${rs(packPrice(i)*n)}`
-  :`${i.name}: ${rs(i.rate)} × ${i.pack} pc × ${n} ${packWord(i,n)} = ${rs(packPrice(i)*n)}`;}
+function packOpts(i){
+  if(i.single)return [1];
+  let o=Array.isArray(i.packOptions)&&i.packOptions.length?i.packOptions.map(Number):/24/.test(i.section)?[8,10,24,56,60]:/\b8\b/.test(i.section)?[8,10]:[Number(i.pack)];
+  if(o.indexOf(Number(i.pack))<0)o.push(Number(i.pack));
+  return Array.from(new Set(o.filter(x=>x>0))).sort((a,b)=>a-b);
+}
+const selPack=i=>b2bSel[i.id]||Number(i.pack)||packOpts(i)[0];
+const priceFor=(i,pack)=>Number(i.rate)*(i.single?1:pack);
+const packWord=(i,n)=>n===1?"pack":"packs";
+function b2bLine(l,n){return l.single?`${l.name}: ${rs(l.rate)} × ${n} ${packWord(l,n)} = ${rs(Number(l.rate)*n)}`
+  :`${l.name}: ${rs(l.rate)} × ${l.pack} pc × ${n} ${packWord(l,n)} = ${rs(Number(l.rate)*l.pack*n)}`;}
+function cartLines(){
+  const byId={};b2bMenu().forEach(i=>{byId[i.id]=i;});
+  return Object.keys(b2bCart).filter(k=>b2bCart[k]>0&&byId[k.split("|")[0]]).map(k=>{const [id,p]=k.split("|"),i=byId[id],pack=i.single?1:Number(p),n=b2bCart[k];
+    return {key:k,id,name:i.name,rate:Number(i.rate),pack,single:!!i.single,packs:n,amount:priceFor(i,pack)*n};});
+}
 function openB2B(){renderB2B();loadB2BRecent();}
 function renderB2B(){
   const v=$("b2bView");if(!v)return;
   const menuList=b2bMenu(),secs=[];menuList.forEach(i=>{if(secs.indexOf(i.section)<0)secs.push(i.section);});
-  const chosen=menuList.filter(i=>b2bCart[i.id]>0),total=chosen.reduce((a,i)=>a+packPrice(i)*b2bCart[i.id],0);
-  v.innerHTML=secs.map(sec=>`<div class="st-sec"><h3>${esc(sec)}</h3>${menuList.filter(i=>i.section===sec).map(i=>`<div class="st-row">
-      <div class="nm">${esc(i.name)}<small>${i.single?`${rs(i.rate)} per pack`:`${rs(i.rate)}/pc × ${i.pack} pc = ${rs(packPrice(i))} per pack`}</small></div>
-      <div class="st-step"><button data-bq="${esc(i.id)}" data-d="-1" aria-label="One pack less">−</button><input data-bi="${esc(i.id)}" inputmode="numeric" value="${b2bCart[i.id]||""}" aria-label="Packs of ${esc(i.name)}"><button data-bq="${esc(i.id)}" data-d="1" aria-label="One pack more">+</button></div></div>`).join("")}</div>`).join("")+
+  const lines=cartLines(),total=lines.reduce((a,l)=>a+l.amount,0);
+  v.innerHTML=secs.map(sec=>`<div class="st-sec"><h3>${esc(sec)}</h3>${menuList.filter(i=>i.section===sec).map(i=>{
+      const p=selPack(i),k=i.id+"|"+(i.single?1:p),opts=packOpts(i),others=lines.filter(l=>l.id===i.id&&l.key!==k);
+      return `<div class="st-row" style="flex-wrap:wrap">
+      <div class="nm">${esc(i.name)}<small>${i.single?`${rs(i.rate)} per pack`:`${rs(i.rate)}/pc × ${p} pc = ${rs(priceFor(i,p))} per pack`}${others.length?` · also ${others.map(l=>`${l.packs} × ${l.pack} pc`).join(", ")}`:""}</small></div>
+      ${opts.length>1?`<select data-ps="${esc(i.id)}" aria-label="Pack size for ${esc(i.name)}" style="min-height:46px;border-radius:12px;border:2px solid var(--line);background:var(--bg);font-weight:800;font-size:16px;padding:0 6px;color:var(--text)">${opts.map(o=>`<option value="${o}" ${o===p?"selected":""}>${o} pc</option>`).join("")}</select>`:""}
+      <div class="st-step"><button data-bq="${esc(k)}" data-d="-1" aria-label="One pack less">−</button><input data-bi="${esc(k)}" inputmode="numeric" value="${b2bCart[k]||""}" aria-label="Packs of ${esc(i.name)}"><button data-bq="${esc(k)}" data-d="1" aria-label="One pack more">+</button></div></div>`;}).join("")}</div>`).join("")+
     `<div class="b2b-foot"><div class="field"><label for="b2bBuyer">Buyer</label><select id="b2bBuyer"><option value="">Choose the buyer…</option>${(cfg.b2bBuyers||[]).map(b=>`<option ${b===b2bBuyer?"selected":""}>${esc(b)}</option>`).join("")}</select></div>
-      ${chosen.length?`<div class="list" style="margin:10px 0">${chosen.map(i=>`<div class="li"><span>${esc(b2bLine(i,b2bCart[i.id]).replace(/ = .*$/,""))}</span><b>${rs(packPrice(i)*b2bCart[i.id])}</b></div>`).join("")}<div class="li"><span><b>Total</b></span><b style="font-size:20px">${rs(total)}</b></div></div>`:`<p class="note" style="color:var(--muted)">Tap + to add packs.</p>`}
+      ${lines.length?`<div class="list" style="margin:10px 0">${lines.map(l=>`<div class="li"><span>${esc(b2bLine(l,l.packs).replace(/ = .*$/,""))}</span><b>${rs(l.amount)}</b></div>`).join("")}<div class="li"><span><b>Total</b></span><b style="font-size:20px">${rs(total)}</b></div></div>`:`<p class="note" style="color:var(--muted)">Choose the pack size, then tap + to add packs.</p>`}
       <div class="hint warn" id="b2bHint"></div>
-      <button class="big-btn" id="b2bSave" ${chosen.length?"":"disabled"}>Save & send on WhatsApp</button>
-      ${chosen.length?`<button class="cancel-btn" id="b2bClear">Clear</button>`:""}</div>
+      <button class="big-btn" id="b2bSave" ${lines.length?"":"disabled"}>Save & send on WhatsApp</button>
+      ${lines.length?`<button class="cancel-btn" id="b2bClear">Clear</button>`:""}</div>
     <div class="sec">This month's B2B bills</div><div id="b2bRecent">${recentHTML()}</div>`;
   $("b2bBuyer").onchange=e=>{b2bBuyer=e.target.value;};
   $("b2bSave").onclick=saveB2B;
@@ -1972,11 +2002,12 @@ async function loadB2BRecent(){
 }
 $("b2bView").addEventListener("click",e=>{
   const q=e.target.closest("[data-bq]");
-  if(q){const id=q.dataset.bq;b2bCart[id]=Math.max(0,(b2bCart[id]||0)+Number(q.dataset.d));if(!b2bCart[id])delete b2bCart[id];F.set("b2bCart",b2bCart);buzz();renderB2B();return;}
+  if(q){const k=q.dataset.bq;b2bCart[k]=Math.max(0,(b2bCart[k]||0)+Number(q.dataset.d));if(!b2bCart[k])delete b2bCart[k];F.set("b2bCart",b2bCart);buzz();renderB2B();return;}
   const r=e.target.closest("[data-b2b]");
   if(r){const b=(b2bRecent||[]).find(x=>x.no===r.dataset.b2b);if(b)showB2BBill(b);}
 });
 $("b2bView").addEventListener("change",e=>{
+  const ps=e.target.closest("[data-ps]");if(ps){b2bSel[ps.dataset.ps]=Number(ps.value);renderB2B();return;}
   const i=e.target.closest("[data-bi]");if(!i)return;
   const n=parseInt(i.value.replace(/\D/g,""),10)||0;if(n)b2bCart[i.dataset.bi]=n;else delete b2bCart[i.dataset.bi];F.set("b2bCart",b2bCart);renderB2B();
 });
@@ -1985,14 +2016,14 @@ function b2bText(b){
     b.lines.map(l=>b2bLine(l,l.packs)).join("\n")+`\n\n*Total: ${rs(b.total)}*`;
 }
 async function saveB2B(){
-  const h=$("b2bHint"),menuList=b2bMenu(),chosen=menuList.filter(i=>b2bCart[i.id]>0);
-  if(!chosen.length)return;
+  const h=$("b2bHint"),lines=cartLines();
+  if(!lines.length)return;
   if(!b2bBuyer){h.textContent="Choose the buyer first";return;}
   if(!navigator.onLine){h.textContent="Saving a B2B bill needs internet (to give it the next bill number)";return;}
   const btn=$("b2bSave");btn.disabled=true;btn.textContent="Saving…";
   const now=new Date(),date=ymd(now);
-  const lines=chosen.map(i=>({id:i.id,name:i.name,rate:Number(i.rate),pack:i.single?1:Number(i.pack),single:!!i.single,packs:b2bCart[i.id],amount:packPrice(i)*b2bCart[i.id]}));
-  const bill={no:"",date,local:localStamp(now),buyer:b2bBuyer,lines,total:lines.reduce((a,l)=>a+l.amount,0),by:me.staffId||"admin",byName:me.admin?"Owner":me.name};
+  const bl=lines.map(l=>({id:l.id,name:l.name,rate:l.rate,pack:l.pack,single:l.single,packs:l.packs,amount:l.amount}));
+  const bill={no:"",date,local:localStamp(now),buyer:b2bBuyer,lines:bl,total:bl.reduce((a,l)=>a+l.amount,0),by:me.staffId||"admin",byName:me.admin?"Owner":me.name};
   try{
     await withTimeoutP(db.runTransaction(async t=>{
       const c=await t.get(D("counters/b2b")),n=((c.exists&&c.data().n)||0)+1;
@@ -2000,7 +2031,7 @@ async function saveB2B(){
       t.set(D("counters/b2b"),{n},{merge:true});
       t.set(D("b2b/"+monthOf(date)),{bills:FV().arrayUnion(bill)},{merge:true});
     }),20000);
-    mirror("b2b",[[bill.no,bill.date,bill.local,bill.buyer,lines.map(l=>l.name+" x"+l.packs).join(", "),bill.total,bill.byName,"",JSON.stringify(lines)]]);
+    mirror("b2b",[[bill.no,bill.date,bill.local,bill.buyer,bl.map(l=>l.name+(l.single?"":" ("+l.pack+" pc)")+" x"+l.packs).join(", "),bill.total,bill.byName,"",JSON.stringify(bl)]]);
     b2bCart={};F.set("b2bCart",b2bCart);(b2bRecent=b2bRecent||[]).push(bill);
     toast(bill.no+" saved");renderB2B();
     window.open("https://wa.me/?text="+encodeURIComponent(b2bText(bill)),"_blank");
@@ -2019,7 +2050,7 @@ function showB2BBill(b){
    OWNER / MANAGER AREA
    ========================================================= */
 let ownTab="sales",ownCache={},syncJobs=0;
-const ADMIN_TABS=[["sales","📊 Sales"],["targets","🎯 Targets"],["insights","📈 Insights"],["staff","👥 Staff"],["attendance","🕒 Attendance"],["advances","💵 Advances"],["payroll","🧮 Salary"],["meals","🍽 Meals"],["stocklist","📦 Stock"],["b2badm","🧾 B2B"],["winback","💬 Win-back"],["settings","⚙ Settings"]];
+const ADMIN_TABS=[["sales","📊 Sales"],["targets","🎯 Targets"],["insights","📈 Insights"],["staff","👥 Staff"],["attendance","🕒 Attendance"],["advances","💵 Advances"],["payroll","🧮 Salary"],["meals","🍽 Meals"],["stocklist","📦 Stock"],["b2badm","🧾 B2B"],["winback","💬 Win-back"],["customers","📇 Customer No."],["settings","⚙ Settings"]];
 const MANAGER_TABS=[["sales","📊 Sales"],["targets","🎯 Targets"],["insights","📈 Insights"],["staff","👥 Staff"],["attendance","🕒 Attendance"],["advances","💵 Advances"],["meals","🍽 Meals"],["stocklist","📦 Stock"],["b2badm","🧾 B2B"]];
 const RO=()=>!me.admin;   // manager: read-only
 const clone=o=>JSON.parse(JSON.stringify(o));
@@ -2052,7 +2083,7 @@ function renderOwner(){
   $("ownTabs").innerHTML=tabs.map(t=>`<button class="tab${t[0]===ownTab?" on":""}" data-ot="${t[0]}">${t[1]}</button>`).join("");
   $("ownTabs").classList.remove("hidden");
   return ({sales:renderSalesTab,targets:renderTargetsTab,insights:renderInsightsTab,staff:renderStaffTab,attendance:renderAttTab,advances:renderAdvTab,
-    payroll:renderPayTab,meals:renderMealsTab,stocklist:renderStockTab,b2badm:renderB2BAdmin,winback:renderWinback,settings:renderSettingsTab})[ownTab]();
+    payroll:renderPayTab,meals:renderMealsTab,stocklist:renderStockTab,b2badm:renderB2BAdmin,winback:renderWinback,customers:renderCustomersTab,settings:renderSettingsTab})[ownTab]();
 }
 $("ownTabs").addEventListener("click",e=>{const b=e.target.closest("[data-ot]");if(!b)return;ownTab=b.dataset.ot;renderOwner();$("ownBody").scrollTop=0;});
 $("ownBtn").addEventListener("click",openOwner);
@@ -2091,7 +2122,9 @@ async function computePayroll(month){
       const r=untracked?{date:d,present:true,inT:"",outT:"",late:0,early:0,flags:{untracked:true}}:evalDay(d,loc,((datas[i].days[d]||{}).p)||[],datas[i].edits[d]);
       if(d===today&&!r.present)return;
       counted++;let inc=0;
-      if(r.present){present++;late+=r.late;early+=r.early;if(!untracked)slabs.forEach(x=>{if((tot.fin[d]||0)>=x[0])inc=x[1];});incentives+=inc;}
+      if(r.present){present++;late+=r.late;early+=r.early;if(!untracked)slabs.forEach(x=>{if((tot.fin[d]||0)>=x[0])inc=x[1];});}
+      const ov=datas[i].edits[d];if(ov&&ov.inc!==undefined&&ov.inc!==null&&ov.inc!=="")inc=Number(ov.inc)||0;   // the owner's figure is final
+      incentives+=inc;
       r.sales=tot.fin[d]||0;r.incentive=inc;days.push(r);
     });
     if(!employed&&st.active===false)return;
@@ -2105,6 +2138,7 @@ async function computePayroll(month){
     const row={staffId:st.id,worker:st.name,loc,salary,daysInMonth:dim,employed,counted,present,leavesEarned:earned,paidLeaves:paidLeave,unpaid,unused,
       late,early,absenceCut:Math.round(absenceCut*100)/100,timeCut:Math.round(timeCut*100)/100,incentives,extra:Math.round(extra*100)/100,advances:advTotal,
       earned:Math.round(base-timeCut+incentives),net:Math.round(base-timeCut+incentives+extra-advTotal),complete,days,advanceList:myAdv,mobile:p.mobile||""};
+    row.paid=(lock&&lock.paid&&lock.paid[st.id])||null;
     const L2=lock&&lock.locked&&(lock.rows||[]).find(r=>r.staffId===st.id||r.worker===st.name);
     if(L2)Object.assign(row,{locked:true,net:L2.net,advances:L2.advances,incentives:L2.incentives,timeCut:L2.timeCut,absenceCut:L2.absenceCut,extra:L2.extra||0});
     rows.push(row);
@@ -2296,11 +2330,13 @@ async function openEmployee(staffId){
     const m=empMonth,[d,pr,pay]=await Promise.all([loadEmployee(staffId,m),me.admin?computePayroll(m):Promise.resolve(null),me.admin?getDoc("pay/"+staffId):Promise.resolve(null)]);
     const r=pr&&pr.rows.find(x=>x.staffId===staffId);
     const box=r?`<div class="wcard"><div class="top"><span>${pr.complete||r.locked?"Net pay":"Earned so far"}</span><span class="big-num" style="font-size:22px;${r.net<0?"color:#C62828":""}">${rs(pr.complete||r.locked?r.net:r.earned)}</span></div>
-      <div class="meta">${monthName(m)}${r.locked?" · paid":""}${!(pr.complete||r.locked)?` · advances ${rs(r.advances)}`:""}</div>
-      <button class="wa-btn" id="empSlip">Send salary slip on WhatsApp</button></div>`:"";
-    $("formBody").innerHTML=employeeHTML(d,{slabs:slabsIn(pay&&pay.slabs),payBox:box});
-    bindEmployee($("formBody"),staffId,{self:false});
+      <div class="meta">${monthName(m)}${r.locked?" · month closed":""}${r.paid?` · ✓ paid ${esc(fmtDate(r.paid.at))} (${rs(r.paid.amount)})`:""}${!(pr.complete||r.locked)?` · advances ${rs(r.advances)}`:""}</div>
+      <button class="wa-btn" id="empSlip">Send salary slip on WhatsApp</button>
+      ${me.admin&&!r.locked?`<button class="act" id="empPaid" style="width:100%;margin-top:8px">${r.paid?"Undo: mark as not paid":"✓ Mark "+monthName(m)+" salary paid ("+rs(r.net)+")"}</button>`:""}</div>`:"";
+    $("formBody").innerHTML=employeeHTML(d,{slabs:slabsIn(pay&&pay.slabs),payBox:box,owner:me.admin&&!(r&&r.locked)});
+    bindEmployee($("formBody"),staffId,{self:false,owner:me.admin&&!(r&&r.locked),d});
     if($("empSlip"))$("empSlip").onclick=()=>sendSlip(pr,r);
+    if($("empPaid"))$("empPaid").onclick=async()=>{await markPaid(m,r,!r.paid);openEmployee(staffId);};
   }catch(e){$("formBody").innerHTML=`<div class="status bad">${esc(e.message)}</div>`;}
 }
 const dShort=s=>{const x=new Date(s+"T12:00:00");return x.getDate()+" "+x.toLocaleDateString("en-IN",{month:"short"});};
@@ -2322,6 +2358,11 @@ function slipText(d,r){
   t+=`\n*Deductions*\n`+(done?`Unpaid days (${r.unpaid}): ${rs(Math.round(r.absenceCut))}\n`:"")+
      (outlet?`Late / early (${r.late+r.early} min): ${rs(Math.round(r.timeCut))}\n`:"")+`Advances: ${rs(r.advances)}${advs.length?" – "+advs.join(", "):""}\n`;
   return t+`\n*Net pay: ${rs(r.net)}*`;
+}
+async function markPaid(month,r,on){
+  try{await withTimeoutP(D("payroll/"+month).set({paid:{[r.staffId]:on?{at:ymd(new Date()),amount:r.net}:FV().delete()}},{merge:true}),15000);
+    dropCache("pay:");toast(on?r.worker+" marked paid":"Marked not paid");}
+  catch(e){toast(e.message,4000);}
 }
 function sendSlip(d,r){
   const txt=slipText(d,r),num=r.mobile||"";
@@ -2384,8 +2425,8 @@ function editAttendance(d,r){
     const why=$("eWhy").value.trim();if(!why){$("eHint").textContent="Add a short reason";return;}
     const val=id=>{const m=$(id+"M").value;if(m==="none")return "NONE";if(m==="set")return $(id+"T").value||null;return "";};
     const inT=val("eIn"),outT=val("eOut");if(inT===null||outT===null){$("eHint").textContent="Enter the time, or choose another option";return;}
-    const e={status:$("eSt").value,inT,outT,reason:why,at:localStamp(new Date()),by:"admin"};
     const i=d.list.indexOf(st),prev=d.datas[i].edits[date];
+    const e={status:$("eSt").value,inT,outT,inc:prev&&prev.inc!==undefined?prev.inc:null,reason:why,at:localStamp(new Date()),by:"admin"};   // keeps an incentive set on the employee page
     d.datas[i].edits[date]=e;closeLayer();if(ownTab==="attendance")drawAttTab(d);
     dropCache("pay:");dropCache("tg:");
     bgSave(async()=>{
@@ -2462,24 +2503,30 @@ function drawPayTab(d){
       <div class="meta">Present ${r.present} · leaves ${r.paidLeaves+r.unpaid} (paid ${r.paidLeaves}, unpaid ${r.unpaid})${r.loc==="outlet"?` · late/early ${r.late+r.early} min`:""}</div>
       <div class="meta">${d.complete||r.locked?`${rs(r.salary)} − ${rs(Math.round(r.absenceCut))} unpaid${r.timeCut?` − ${rs(Math.round(r.timeCut))} late/early`:""}${r.incentives?` + ${rs(r.incentives)} incentive`:""}${r.extra?` + ${rs(Math.round(r.extra))} leave days worked`:""} − ${rs(r.advances)} advance`
         :`Earned so far ${rs(Math.round(r.salary-r.absenceCut))}${r.timeCut?` − ${rs(Math.round(r.timeCut))} late/early`:""}${r.incentives?` + ${rs(r.incentives)} incentive`:""} − ${rs(r.advances)} advance`}</div></div>
-      <div class="chips" style="margin:10px 0 0"><button class="chip wa" data-slip="${i}">WhatsApp salary slip</button><button class="chip" data-emp="${esc(r.staffId)}">Employee page</button></div></div>`).join("")+
-    `<div class="actions">${!d.locked&&d.complete?`<button class="big-btn" id="mLock">Mark ${esc(monthName(d.month))} as paid</button>`:""}${d.locked?`<button class="act" id="mUnlock">Unlock ${esc(monthName(d.month))}</button>`:""}</div>
+      <div class="chips" style="margin:10px 0 0"><button class="chip wa" data-slip="${i}">WhatsApp salary slip</button><button class="chip" data-emp="${esc(r.staffId)}">Employee page</button>
+        ${r.paid?`<button class="chip on" data-unpay="${i}" ${d.locked?"disabled":""}>✓ Paid ${esc(fmtDate(r.paid.at))}</button>`:d.locked?"":`<button class="chip" data-pay="${i}">Mark paid</button>`}</div></div>`).join("")+
+    `<div class="actions">${!d.locked&&d.complete?`<div class="note" style="color:var(--muted)">${d.rows.filter(r=>r.paid).length} of ${d.rows.length} marked paid.</div><button class="big-btn" id="mLock">Close ${esc(monthName(d.month))} (lock salaries)</button>`:""}${d.locked?`<button class="act" id="mUnlock">Reopen ${esc(monthName(d.month))}</button>`:""}</div>
     <p class="note" style="color:var(--muted)">Day rate = salary ÷ 30. Outlet minute rate = day rate ÷ ${+locCfg("outlet").minutes||720}; kitchen has no late cuts. 1 paid leave per 6 days worked, up to 4; unused earned leaves are paid extra on the slip. Incentives use final daily sales.</p>`;
   bindMonthNav("m",()=>payMonth,v=>{payMonth=v;},renderPayTab);
   $("ownBody").querySelectorAll("[data-pr]").forEach(b=>b.onclick=()=>{empMonth=d.month;openEmployee(d.rows[+b.dataset.pr].staffId);});
   $("ownBody").querySelectorAll("[data-emp]").forEach(b=>b.onclick=()=>{empMonth=d.month;openEmployee(b.dataset.emp);});
   $("ownBody").querySelectorAll("[data-slip]").forEach(b=>b.onclick=()=>sendSlip(d,d.rows[+b.dataset.slip]));
+  $("ownBody").querySelectorAll("[data-pay],[data-unpay]").forEach(b=>b.onclick=async()=>{
+    const r=d.rows[+(b.dataset.pay||b.dataset.unpay)],on=!!b.dataset.pay;
+    r.paid=on?{at:ymd(new Date()),amount:r.net}:null;drawPayTab(d);await markPaid(d.month,r,on);
+  });
   if($("mLock"))$("mLock").onclick=async()=>{
-    if(!await ask({title:"Mark "+monthName(d.month)+" as paid?",text:"The salaries and advances for this month get locked.",yes:"Mark paid",no:"Not yet"}))return;
+    const unpaid=d.rows.filter(r=>!r.paid).map(r=>r.worker);
+    if(!await ask({title:"Close "+monthName(d.month)+"?",text:(unpaid.length?"Not marked paid yet: "+unpaid.join(", ")+".\n\n":"")+"The salaries, attendance changes and advances for this month get locked. New advances go to the next month.",yes:"Close month",no:"Not yet"}))return;
     ownBusy("Locking the month…");
     try{const rows=d.rows.map(r=>({staffId:r.staffId,worker:r.worker,salary:r.salary,present:r.present,paidLeaves:r.paidLeaves,unpaid:r.unpaid,late:r.late,early:r.early,
         absenceCut:r.absenceCut,timeCut:r.timeCut,incentives:r.incentives,extra:r.extra,advances:r.advances,net:r.net}));
-      await withTimeoutP(D("payroll/"+d.month).set({locked:true,lockedAt:localStamp(new Date()),rows}),20000);dropCache("pay:");dropCache("adv");toast("Marked paid");renderPayTab();}
+      await withTimeoutP(D("payroll/"+d.month).set({locked:true,lockedAt:localStamp(new Date()),rows},{merge:true}),20000);dropCache("pay:");dropCache("adv");toast("Month closed");renderPayTab();}
     catch(e){toast(e.message,4000);renderPayTab();}
   };
   if($("mUnlock"))$("mUnlock").onclick=async()=>{
-    if(!await ask({title:"Unlock "+monthName(d.month)+"?",text:"Use this only to fix a mistake. Figures will be recalculated.",yes:"Unlock",no:"Cancel",danger:true}))return;
-    try{await withTimeoutP(D("payroll/"+d.month).set({locked:false,rows:[]}),15000);dropCache("pay:");dropCache("adv");toast("Unlocked");renderPayTab();}catch(e){toast(e.message,4000);}
+    if(!await ask({title:"Reopen "+monthName(d.month)+"?",text:"Use this only to fix a mistake. Figures will be recalculated from the current records. Paid marks are kept.",yes:"Reopen",no:"Cancel",danger:true}))return;
+    try{await withTimeoutP(D("payroll/"+d.month).set({locked:false,rows:[]},{merge:true}),15000);dropCache("pay:");dropCache("adv");toast("Reopened");renderPayTab();}catch(e){toast(e.message,4000);}
   };
 }
 
@@ -2554,14 +2601,16 @@ function drawB2BAdmin(month,d){
 }
 function drawB2BMenuEditor(){
   const secs=[];b2bMenuDraft.forEach(i=>{if(secs.indexOf(i.section)<0)secs.push(i.section);});
-  $("ownBody").innerHTML=`<p class="note" style="color:var(--muted);margin:0 4px 10px">Pack price = per-piece rate × pack size. Tick "Single" for items sold per pack (rate = pack price). Past bills keep their prices.</p>`+
+  $("ownBody").innerHTML=`<p class="note" style="color:var(--muted);margin:0 4px 10px">Pack price = per-piece rate × pack size. "Pieces" is the usual size; the kitchen can pick any size from the list. Tick "Single" for items sold per pack (rate = pack price). Past bills keep their prices.</p>`+
     b2bMenuDraft.map((it,i)=>`<div class="sec-edit"><div class="hdr"><input data-bn="${i}" value="${esc(it.name)}" placeholder="Item name" aria-label="Item name"><button class="mini" data-bup="${i}" aria-label="Move up">↑</button><button class="mini" data-bdel="${i}" aria-label="Remove">✕</button></div>
       <div class="row2" style="grid-template-columns:1.3fr 1fr 1fr"><input data-bs="${i}" value="${esc(it.section)}" placeholder="Section (e.g. Pack of 24)" aria-label="Section"><input data-br="${i}" inputmode="numeric" value="${it.rate||""}" placeholder="${it.single?"₹ per pack":"₹ per piece"}" aria-label="Rate"><input data-bp="${i}" inputmode="numeric" value="${it.single?"":it.pack||""}" placeholder="Pieces" aria-label="Pack size" ${it.single?"disabled":""}></div>
+      ${it.single?"":`<div class="field" style="margin-top:6px"><label for="bo${i}" style="font-size:14px">Pack sizes to choose from (pieces, separated by commas)</label><input id="bo${i}" data-bo="${i}" inputmode="numeric" value="${esc(packOpts(it).join(", "))}"></div>`}
       <label class="chk" style="min-height:40px"><input type="checkbox" data-bsg="${i}" ${it.single?"checked":""}>Single (priced per pack or box)</label></div>`).join("")+
     `<button class="act" id="bAdd" style="width:100%;margin-bottom:10px">+ Add item</button><button class="big-btn" id="bSave">Save B2B menu</button><button class="act" id="bBack" style="width:100%;margin-top:8px">Cancel</button>`;
   const B=$("ownBody"),read=()=>b2bMenuDraft.forEach((it,i)=>{it.name=B.querySelector(`[data-bn="${i}"]`).value.trim();it.section=B.querySelector(`[data-bs="${i}"]`).value.trim()||"Other";
     it.rate=Number(B.querySelector(`[data-br="${i}"]`).value.replace(/[^\d.]/g,""))||0;it.single=B.querySelector(`[data-bsg="${i}"]`).checked;
-    it.pack=it.single?1:(parseInt(B.querySelector(`[data-bp="${i}"]`).value.replace(/\D/g,""),10)||0);});
+    it.pack=it.single?1:(parseInt(B.querySelector(`[data-bp="${i}"]`).value.replace(/\D/g,""),10)||0);
+    const bo=B.querySelector(`[data-bo="${i}"]`);if(bo)it.packOptions=Array.from(new Set(bo.value.split(/[^\d]+/).map(Number).filter(x=>x>0))).sort((a,b)=>a-b);});
   B.querySelectorAll("[data-bsg]").forEach(x=>x.onchange=()=>{read();drawB2BMenuEditor();});
   B.querySelectorAll("[data-bup]").forEach(x=>x.onclick=()=>{read();const i=+x.dataset.bup;if(i>0)[b2bMenuDraft[i-1],b2bMenuDraft[i]]=[b2bMenuDraft[i],b2bMenuDraft[i-1]];drawB2BMenuEditor();});
   B.querySelectorAll("[data-bdel]").forEach(x=>x.onclick=()=>{read();b2bMenuDraft.splice(+x.dataset.bdel,1);drawB2BMenuEditor();});
@@ -2570,7 +2619,8 @@ function drawB2BMenuEditor(){
   $("bSave").onclick=async()=>{
     read();const bad=b2bMenuDraft.find(it=>!it.name||!(it.rate>0)||(!it.single&&!(it.pack>0)));
     if(bad){toast("Every item needs a name, a rate, and a pack size (or Single)",3500);return;}
-    const menu=b2bMenuDraft.map(it=>({id:it.id||("i"+Date.now()+Math.random().toString(36).slice(2,6)),section:it.section,name:it.name,rate:it.rate,pack:it.single?1:it.pack,single:!!it.single}));
+    const menu=b2bMenuDraft.map(it=>{const o={id:it.id||("i"+Date.now()+Math.random().toString(36).slice(2,6)),section:it.section,name:it.name,rate:it.rate,pack:it.single?1:it.pack,single:!!it.single};
+      if(!it.single){const p=(it.packOptions||[]).slice();if(p.indexOf(o.pack)<0)p.push(o.pack);o.packOptions=p.sort((a,b)=>a-b);}return o;});
     b2bMenuDraft=null;toast(cfgResultMsg(await saveShared({b2bMenu:menu}),"B2B menu"),3500);renderB2BAdmin();
   };
 }
@@ -2969,6 +3019,96 @@ async function catchUp(){
     await batch.commit();
   }catch(e){}
 }
+/* ---------- Owner edits on the employee page (they replace recorded figures; salary follows) ---------- */
+function dayEditForm(staffId,d,date){
+  const st=staffById(staffId),loc=st.loc||"outlet",ex=d.data.edits[date]||{};
+  const r=evalDay(date,loc,((d.data.days[date]||{}).p)||[],d.data.edits[date]),hhmm=t=>t?t.slice(11,16):"";
+  const outlet=loc==="outlet";
+  const modeSel=(id,label,val,cur)=>`<div class="field"><label for="${id}M">${label}</label>
+    <select id="${id}M"><option value="auto">As punched</option><option value="set">Set time</option><option value="none">None (clear it)</option></select>
+    <input id="${id}T" type="time" value="${val}" style="margin-top:8px"></div>`;
+  $("dayTitle").textContent=st.name+" · "+fmtDate(date);
+  $("dayBody").innerHTML=`<div class="form">
+    <div class="field"><label for="dSt">Day counts as</label><select id="dSt"><option value="">From check-in (automatic)</option><option value="Present">Present</option><option value="Absent">Absent (leave)</option></select></div>
+    ${modeSel("dIn","Check-in",hhmm(r.inT))}${modeSel("dOut","Check-out",hhmm(r.outT))}
+    ${outlet?`<div class="field"><label for="dIncM">Incentive for this day</label><select id="dIncM"><option value="auto">Calculated from sales targets</option><option value="set">Set amount</option></select>
+      <input id="dInc" inputmode="numeric" maxlength="5" placeholder="₹" value="${ex.inc!=null&&ex.inc!==""?ex.inc:""}" style="margin-top:8px"></div>`:""}
+    <div class="field"><label for="dWhy">Note (optional)</label><input id="dWhy" maxlength="80" value="${esc(ex.reason&&ex.reason!=="Edited on employee page"?ex.reason:"")}"></div>
+    <div class="hint warn" id="dHint"></div><button class="big-btn" id="dSave">Save</button>
+    ${d.data.edits[date]?`<button class="act" id="dReset" style="width:100%;margin-top:8px">Remove my changes for this day</button>`:""}</div>`;
+  const pick=(id,v)=>{const m=$(id+"M");if(!m)return;m.value=v==="NONE"?"none":v?"set":"auto";$(id+"T").classList.toggle("hidden",m.value!=="set");m.onchange=()=>$(id+"T").classList.toggle("hidden",m.value!=="set");};
+  $("dSt").value=ex.status||"";pick("dIn",ex.inT);pick("dOut",ex.outT);
+  if($("dIncM")){$("dIncM").value=ex.inc!=null&&ex.inc!==""?"set":"auto";$("dInc").classList.toggle("hidden",$("dIncM").value!=="set");$("dIncM").onchange=()=>$("dInc").classList.toggle("hidden",$("dIncM").value!=="set");}
+  openLayer("dayLayer");
+  const done=async e=>{
+    const ref=D(`attEdits/${staffId}_${monthOf(date)}`);
+    try{
+      if(e)await withTimeoutP(ref.set({staffId,days:{[date]:e}},{merge:true}),15000);
+      else await withTimeoutP(ref.update({["days."+date]:FV().delete()}),15000);
+      if(e)d.data.edits[date]=e;else delete d.data.edits[date];
+      if(loc==="outlet"&&e)mirror("edit",[["E"+staffId+date+e.at,date,st.name,e.status,e.inT,e.outT,e.reason,e.at]]);
+      closeLayer();dropCache("pay:");dropCache("tg:");dropCache("att:");toast("Saved. Salary updated.");openEmployee(staffId);
+    }catch(err){$("dHint").textContent=err.message;$("dSave").disabled=false;}
+  };
+  $("dSave").onclick=()=>{
+    const val=id=>{const m=$(id+"M").value;if(m==="none")return "NONE";if(m==="set")return $(id+"T").value||null;return "";};
+    const inT=val("dIn"),outT=val("dOut");if(inT===null||outT===null){$("dHint").textContent="Enter the time, or choose another option";return;}
+    let inc=null;if($("dIncM")&&$("dIncM").value==="set"){const t=$("dInc").value.replace(/\D/g,"");if(t===""){$("dHint").textContent="Enter the incentive amount (0 for none)";return;}inc=+t;}
+    $("dSave").disabled=true;
+    done({status:$("dSt").value,inT,outT,inc,reason:$("dWhy").value.trim()||"Edited on employee page",at:localStamp(new Date()),by:"admin"});
+  };
+  if($("dReset"))$("dReset").onclick=()=>done(null);
+}
+function advanceEditForm(staffId,a){
+  const st=staffById(staffId),isNew=!a;
+  $("dayTitle").textContent=isNew?"Add advance · "+st.name:"Advance · "+st.name;
+  $("dayBody").innerHTML=`<div class="form">
+    <div class="field"><label for="aDate">Date</label><input id="aDate" type="date" value="${esc(a?a.date:ymd(new Date()))}"><div class="note" id="aCyc"></div></div>
+    <div class="field"><label for="aAmt">Amount (₹)</label><input id="aAmt" inputmode="numeric" maxlength="6" value="${a?a.amount:""}"></div>
+    <div class="field"><label for="aNote">Note (optional)</label><input id="aNote" maxlength="60" value="${esc(a?a.note||"":"")}"></div>
+    <div class="hint warn" id="aHint"></div><button class="big-btn" id="aSave">Save</button>
+    ${a?`<button class="cancel-btn" id="aCancel">Cancel this advance</button>`:""}</div>`;
+  const cyc=()=>{const d=$("aDate").value;$("aCyc").textContent=d?"Settled in the salary paid on "+fmtDate(cycleOf(d)):"";};
+  $("aDate").onchange=cyc;cyc();openLayer("dayLayer");
+  const write=async data=>{
+    const id=a?a.id:"A"+device+Date.now();
+    try{await withTimeoutP(D("advances/"+id).set(data,{merge:true}),15000);
+      const x=Object.assign({},a||{},data);
+      mirror("advance",[[id,x.date,st.name,x.amount,x.by,"",x.note||"",x.month,x.status,x.reviewed?"Yes":"",localStamp(new Date())]]);
+      closeLayer();dropCache("pay:");delete ownCache.adv;toast("Saved. Salary updated.");openEmployee(staffId);}
+    catch(err){$("aHint").textContent=err.message;}
+  };
+  $("aSave").onclick=()=>{
+    const amt=parseInt($("aAmt").value.replace(/\D/g,""),10),date=$("aDate").value;
+    if(!(amt>0)){$("aHint").textContent="Enter the amount";return;}if(!date){$("aHint").textContent="Choose the date";return;}
+    const m=settleMonthOf(date);
+    if((ownCache["pay:"+m]&&ownCache["pay:"+m].locked)){$("aHint").textContent="That salary month is already closed. Reopen it in 🧮 Salary first.";return;}
+    write(Object.assign({amount:amt,date,note:$("aNote").value.trim(),month:m},isNew?{staffId,staffName:st.name,by:"Owner",status:"Active",reviewed:true,at:localStamp(new Date())}:{}));
+  };
+  if($("aCancel"))$("aCancel").onclick=async()=>{if(await ask({title:"Cancel this advance?",text:"It won't be deducted. It stays in the records marked Cancelled.",yes:"Cancel advance",no:"Keep",danger:true}))write({status:"Cancelled"});};
+}
+
+/* ---------- 📇 Customer numbers ---------- */
+let custQuery="";
+function renderCustomersTab(){return cached("cust",async()=>{
+  const q=await withTimeoutP(db.collection("customers").get(),30000);
+  return q.docs.map(d=>{const x=d.data(),dates=Object.values(x.bills||{}).sort();return {mobile:d.id,visits:dates.length,last:dates[dates.length-1]||"",optOut:!!x.optOut};})
+    .filter(c=>c.visits>0).sort((a,b)=>a.last<b.last?1:a.last>b.last?-1:b.visits-a.visits);
+},drawCustomers,renderCustomersTab);}
+function drawCustomers(all){
+  const q=custQuery.replace(/\D/g,""),list=q?all.filter(c=>c.mobile.indexOf(q)>=0):all;
+  $("ownBody").innerHTML=`<div class="field"><label for="custQ">Search a number</label><input id="custQ" inputmode="numeric" maxlength="10" value="${esc(custQuery)}" placeholder="Type any part of the number"></div>
+    <p class="note" style="color:var(--muted);margin:6px 4px 10px">${all.length} customer number${all.length===1?"":"s"}, latest visit first. The WhatsApp button opens an empty chat with that customer.</p>
+    <div id="custList">${custRows(list)}</div>`;
+  $("custQ").oninput=e=>{custQuery=e.target.value;const q2=custQuery.replace(/\D/g,"");$("custList").innerHTML=custRows(q2?all.filter(c=>c.mobile.indexOf(q2)>=0):all);bindCust();};
+  bindCust();
+}
+function custRows(list){
+  return list.length?listBox(list.slice(0,400).map(c=>`<div class="li"><span><b style="letter-spacing:.5px">${esc(c.mobile)}</b> <span class="m">${c.visits} visit${c.visits===1?"":"s"} · last ${esc(fmtDate(c.last))}${c.optOut?" · asked not to be messaged":""}</span></span>
+    <button class="chip wa" data-cw="${esc(c.mobile)}" aria-label="WhatsApp ${esc(c.mobile)}">💬 WhatsApp</button></div>`))+(list.length>400?`<p class="note" style="color:var(--muted)">Showing 400 of ${list.length}. Search to narrow down.</p>`:"")
+    :`<div class="list"><div class="empty">No matching numbers</div></div>`;
+}
+function bindCust(){$("ownBody").querySelectorAll("[data-cw]").forEach(b=>b.onclick=()=>window.open("https://wa.me/91"+b.dataset.cw,"_blank"));}
 /* =========================================================
    PRICE EDITOR (owner)
    ========================================================= */

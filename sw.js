@@ -1,5 +1,5 @@
 // Offline support. Bump VERSION whenever you upload new app files.
-const VERSION = "mbc-v6-1";
+const VERSION = "mbc-v6-2";
 const FILES = ["./", "./index.html", "./app.html", "./firebase-config.js", "./manifest.json", "./icon-192.png", "./icon-512.png",
   "./firebase-app-compat.js", "./firebase-auth-compat.js", "./firebase-firestore-compat.js"];
 const APP_PATHS = FILES.map(f => new URL(f, self.location).pathname);
